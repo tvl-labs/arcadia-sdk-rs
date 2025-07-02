@@ -4,24 +4,23 @@ pub mod common;
 pub mod events;
 pub mod intents;
 pub mod receipt;
-pub mod rpc;
+pub mod refinement;
 pub mod solidity;
 
 pub mod solution;
 use intents::{Intent, SignedIntent};
 use solution::Solution;
 
-pub trait RpcType {}
-
 pub trait SolidityType {}
-pub trait ToRpc {
-    type Rpc: RpcType;
-    fn to_rpc(&self) -> Self::Rpc;
-}
 
 pub trait ToSol {
     type Sol: SolidityType;
     fn to_sol(&self) -> Self::Sol;
+}
+
+pub trait FromSol {
+    type Sol: SolidityType;
+    fn from_sol(sol: Self::Sol) -> Self;
 }
 
 pub trait Intentful {

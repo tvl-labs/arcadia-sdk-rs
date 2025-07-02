@@ -1,10 +1,18 @@
-use alloy::sol;
+use alloy::primitives::B256;
+use alloy::sol_types::eip712_domain;
+use alloy::{dyn_abi::Eip712Domain, primitives::Address, sol};
+
+use crate::types::SolidityType;
 
 sol! {
+
+
     struct XChainEvent {
         address publisher;
+        uint256 originChainId;
         bytes32 eventHash;
-        uint256 chainId;
+        uint256 eventNonce;
+        bytes eventData;
     }
 
     struct AssetReserveDeposit {
@@ -12,6 +20,12 @@ sol! {
         uint256 amount;
         address depositor;
     }
+    struct MTokenWithdrawal {
+        address token;
+        uint256 amount;
+        address withdrawer;
+    }
+
 
 
     enum OutcomeAssetStructure {
@@ -101,4 +115,28 @@ sol! {
         Solution solution;
         bytes signature;
     }
+
+
+    bytes32 constant ASSET_RESERVE_DEPOSIT_STRUCT_TYPE_HASH = keccak256(
+        "AssetReserveDeposit(address token, uint256 amount, address depositor)",
+    );
+    bytes32 constant MTOKEN_WITHDRAWAL_STRUCT_TYPE_HASH = keccak256(
+        "MTokenWithdrawal(address token, uint256 amount, address withdrawer)",
+    );
+
+    bytes32 constant DEPOSIT_EVENT = keccak256("AssetReserveDeposit");
+
+
 }
+
+impl SolidityType for Intent {}
+impl SolidityType for FillStructure {}
+impl SolidityType for OutcomeAssetStructure {}
+impl SolidityType for Outcome {}
+impl SolidityType for Receipt {}
+impl SolidityType for Solution {}
+impl SolidityType for SignedSolution {}
+impl SolidityType for MoveRecord {}
+impl SolidityType for FillRecord {}
+impl SolidityType for OutputIdx {}
+impl SolidityType for OutType {}
