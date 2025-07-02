@@ -140,3 +140,6 @@ impl SolidityType for MoveRecord {}
 impl SolidityType for FillRecord {}
 impl SolidityType for OutputIdx {}
 impl SolidityType for OutType {}
+impl SolidityType for XChainEvent {}
+impl SolidityType for AssetReserveDeposit {}
+impl SolidityType for MTokenWithdrawal {}
