@@ -5,7 +5,7 @@ use super::solidity::{
 };
 use super::{FromSol, ToSol};
 use serde::{Deserialize, Serialize};
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct XChainEvent {
     pub(crate) publisher: Address,
@@ -15,7 +15,7 @@ pub struct XChainEvent {
     pub event_data: Vec<u8>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct AssetReserveDeposit {
     pub token: Address,
@@ -29,7 +29,7 @@ impl ToSol for XChainEvent {
         SolXChainEvent {
             publisher: self.publisher,
             eventHash: self.event_hash,
-            originChainId: U256::from_le_bytes(self.origin_chain_id.to_le_bytes()),
+            originChainId: U256::from(self.origin_chain_id),
             eventNonce: self.event_nonce,
             eventData: self.event_data.clone().into(),
         }
@@ -42,7 +42,7 @@ impl FromSol for XChainEvent {
         XChainEvent {
             publisher: sol.publisher,
             event_hash: sol.eventHash,
-            origin_chain_id: ChainId::from_be_bytes(sol.originChainId.to_be_bytes()),
+            origin_chain_id: sol.originChainId.to::<u64>(),
             event_nonce: sol.eventNonce,
             event_data: sol.eventData.to_vec(),
         }

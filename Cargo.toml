@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-alloy = { version = "1.0.17", features = ["full", "signer-aws"] }
+alloy = { version = "1.0.6", features = ["full", "signer-aws"] }
 hex = "0.4.3"
 jsonrpsee = { version = "0.25.1", features = ["full"] }
 reqwest = "0.12.15"
