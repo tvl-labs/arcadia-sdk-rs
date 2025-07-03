@@ -3,7 +3,6 @@ pub mod error;
 pub mod types;
 
 #[cfg(test)]
-
 mod tests {
     use crate::types::{FromSol, ToSol};
     use crate::types::{events, intents, receipt, solidity, solution};
@@ -16,7 +15,6 @@ mod tests {
     };
     #[test]
     fn test_to_and_from_sol_for_xchain_event() {
-        use crate::types::events::XChainEvent;
         let xchain_event = XChainEvent {
             publisher: Address::from_hex("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266").unwrap(),
             event_hash: B256::from_hex(
@@ -29,7 +27,9 @@ mod tests {
         };
 
         let sol_xchain_event = xchain_event.to_sol();
-        let new_xchain_event = XChainEvent::from_sol(sol_xchain_event);
+        let new_xchain_event = XChainEvent::from_sol(sol_xchain_event.clone());
+        let new_xchain_event_sol = new_xchain_event.to_sol();
+        assert_eq!(sol_xchain_event, new_xchain_event_sol);
         assert_eq!(xchain_event, new_xchain_event);
     }
 }

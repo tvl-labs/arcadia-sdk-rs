@@ -6,7 +6,7 @@ use crate::types::SolidityType;
 
 sol! {
 
-
+    #[derive(Debug, PartialEq, Eq)]
     struct XChainEvent {
         address publisher;
         uint256 originChainId;
@@ -15,25 +15,28 @@ sol! {
         bytes eventData;
     }
 
+    #[derive(Debug, PartialEq, Eq)]
     struct AssetReserveDeposit {
         address token;
         uint256 amount;
         address depositor;
     }
+
+    #[derive(Debug, PartialEq, Eq)]
     struct MTokenWithdrawal {
         address token;
         uint256 amount;
         address withdrawer;
     }
 
-
-
+    #[derive(Debug, PartialEq, Eq)]
     enum OutcomeAssetStructure {
         AnySingle,
         Any,
         All
     }
 
+    #[derive(Debug, PartialEq, Eq)]
     enum FillStructure {
         Exactly,
         Minimum,
@@ -41,6 +44,7 @@ sol! {
         ConcreteRange
     }
 
+    #[derive(Debug, PartialEq, Eq)]
     struct Outcome {
         address[] mTokens;
         uint256[] mAmounts;
@@ -48,6 +52,7 @@ sol! {
         FillStructure fillStructure;
     }
 
+    #[derive(Debug, PartialEq, Eq)]
     struct Intent {
         address author;
         uint256 ttl;
@@ -57,11 +62,13 @@ sol! {
         Outcome outcome;
     }
 
+    #[derive(Debug, PartialEq, Eq)]
     struct SignedIntent {
         Intent intent;
         bytes signature;
     }
 
+    #[derive(Debug, PartialEq, Eq)]
     enum IntentState {
         NonExistent,
         Locked,
@@ -73,6 +80,7 @@ sol! {
         Error,
     }
 
+    #[derive(Debug, PartialEq, Eq)]
     struct Receipt {
         address mToken;
         uint256 mTokenAmount;
@@ -81,28 +89,33 @@ sol! {
     }
 
 
+    #[derive(Debug, PartialEq, Eq)]
     enum OutType {
         Intent,
         Receipt
     }
 
+    #[derive(Debug, PartialEq, Eq)]
     struct OutputIdx {
         OutType outType;
         uint64 outIdx;
     }
 
+    #[derive(Debug, PartialEq, Eq)]
     struct MoveRecord {
         uint64 srcIdx;
         OutputIdx outputIdx;
         uint256 qty;
     }
 
+    #[derive(Debug, PartialEq, Eq)]
     struct FillRecord {
         uint64 inIdx;
         uint64 outIdx;
         OutType outType;
     }
 
+    #[derive(Debug, PartialEq, Eq)]
     struct Solution {
         bytes32[] intentIds;
         Intent[] intentOutputs;
@@ -111,6 +124,7 @@ sol! {
         FillRecord[] fillGraph;
     }
 
+    #[derive(Debug, PartialEq, Eq)]
     struct SignedSolution {
         Solution solution;
         bytes signature;
