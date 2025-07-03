@@ -26,7 +26,7 @@ pub enum FillStructure {
     ConcreteRange,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Outcome {
     pub m_tokens: Vec<Address>,
@@ -35,7 +35,7 @@ pub struct Outcome {
     pub fill_structure: FillStructure,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Intent {
     pub author: Address,
@@ -46,7 +46,7 @@ pub struct Intent {
     pub outcome: Outcome,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub struct SignedIntent {
     pub intent: Intent,
     pub signature: Signature,

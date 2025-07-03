@@ -2,7 +2,7 @@ use crate::types::{FromSol, ToSol, solidity::Receipt as SolReceipt};
 use alloy::primitives::{Address, B256, U256};
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Receipt {
     pub m_token: Address,

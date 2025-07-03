@@ -5,7 +5,7 @@ use alloy::primitives::{Address, Signature, U256, keccak256};
 use alloy::sol_types::SolValue;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Solution {
     pub intent_ids: Vec<B256>,
@@ -15,13 +15,13 @@ pub struct Solution {
     pub fill_graph: Vec<FillRecord>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub struct SignedSolution {
     pub solution: Solution,
     pub signature: Signature,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
+#[derive(PartialEq, Debug, Serialize, Deserialize, Clone, Eq)]
 pub enum OutType {
     Intent,
     Receipt,
@@ -36,14 +36,14 @@ impl From<OutType> for u8 {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct OutputIdx {
     pub out_type: OutType,
     pub out_idx: u64,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct MoveRecord {
     pub src_idx: u64,
@@ -51,7 +51,7 @@ pub struct MoveRecord {
     pub qty: U256,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct FillRecord {
     pub in_idx: u64,
@@ -110,6 +110,78 @@ impl ToSol for OutType {
         match self {
             OutType::Intent => crate::types::solidity::OutType::Intent,
             OutType::Receipt => crate::types::solidity::OutType::Receipt,
+        }
+    }
+}
+
+impl FromSol for OutType {
+    type Sol = crate::types::solidity::OutType;
+    fn from_sol(sol: Self::Sol) -> Self {
+        match sol {
+            crate::types::solidity::OutType::Intent => OutType::Intent,
+            crate::types::solidity::OutType::Receipt => OutType::Receipt,
+            _ => panic!("Invalid OutType"),
+        }
+    }
+}
+
+impl FromSol for MoveRecord {
+    type Sol = crate::types::solidity::MoveRecord;
+    fn from_sol(sol: Self::Sol) -> Self {
+        MoveRecord {
+            src_idx: sol.srcIdx,
+            output_idx: OutputIdx::from_sol(sol.outputIdx),
+            qty: sol.qty,
+        }
+    }
+}
+
+impl FromSol for OutputIdx {
+    type Sol = crate::types::solidity::OutputIdx;
+    fn from_sol(sol: Self::Sol) -> Self {
+        OutputIdx {
+            out_type: OutType::from_sol(sol.outType),
+            out_idx: sol.outIdx,
+        }
+    }
+}
+
+impl FromSol for FillRecord {
+    type Sol = crate::types::solidity::FillRecord;
+    fn from_sol(sol: Self::Sol) -> Self {
+        FillRecord {
+            in_idx: sol.inIdx,
+            out_idx: sol.outIdx,
+            out_type: OutType::from_sol(sol.outType),
+        }
+    }
+}
+
+impl FromSol for Solution {
+    type Sol = crate::types::solidity::Solution;
+    fn from_sol(sol: Self::Sol) -> Self {
+        Solution {
+            intent_ids: sol.intentIds,
+            intent_outputs: sol
+                .intentOutputs
+                .iter()
+                .map(|i| Intent::from_sol(i.clone()))
+                .collect(),
+            receipt_outputs: sol
+                .receiptOutputs
+                .iter()
+                .map(|r| Receipt::from_sol(r.clone()))
+                .collect(),
+            spend_graph: sol
+                .spendGraph
+                .iter()
+                .map(|m| MoveRecord::from_sol(m.clone()))
+                .collect(),
+            fill_graph: sol
+                .fillGraph
+                .iter()
+                .map(|f| FillRecord::from_sol(f.clone()))
+                .collect(),
         }
     }
 }
