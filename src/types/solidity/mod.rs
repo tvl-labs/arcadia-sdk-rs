@@ -1,8 +1,8 @@
 use alloy::primitives::B256;
-use alloy::sol_types::eip712_domain;
+use alloy::sol_types::{SolStruct, eip712_domain};
 use alloy::{dyn_abi::Eip712Domain, primitives::Address, sol};
 
-use crate::types::SolidityType;
+use crate::types::{SolidityType, ToSol};
 
 sol! {
 
@@ -157,3 +157,16 @@ impl SolidityType for OutType {}
 impl SolidityType for XChainEvent {}
 impl SolidityType for AssetReserveDeposit {}
 impl SolidityType for MTokenWithdrawal {}
+
+pub fn eip712_domain(verifying_contract: Address) -> Eip712Domain {
+    eip712_domain! {
+        name: "KhalaniIntent".to_string(),
+        version: "1.0.0".to_string(),
+        verifying_contract: verifying_contract,
+    }
+}
+
+pub fn eip712_intent_hash(intent: &crate::types::intents::Intent, intent_book: Address) -> B256 {
+    let domain = eip712_domain(intent_book);
+    intent.to_sol().eip712_signing_hash(&domain)
+}
