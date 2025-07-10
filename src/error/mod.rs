@@ -26,4 +26,6 @@ pub enum Error {
     TimeoutError(String),
     #[error("Config error: {0}")]
     ConfigError(String),
+    #[error("Provider error: {0}")]
+    ProviderError(String),
 }

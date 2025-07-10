@@ -130,6 +130,19 @@ sol! {
         bytes signature;
     }
 
+    #[derive(Debug, PartialEq, Eq)]
+    struct MTokenInfo {
+        address mTokenAddress;
+        bool isPaused;
+        bool isDestroyed;
+    }
+
+    #[derive(Debug, PartialEq, Eq)]
+    struct SpokeTokenInfo {
+        address token;
+        uint32 chainId;
+    }
+
 
     bytes32 constant ASSET_RESERVE_DEPOSIT_STRUCT_TYPE_HASH = keccak256(
         "AssetReserveDeposit(address token, uint256 amount, address depositor)",
@@ -139,6 +152,27 @@ sol! {
     );
 
     bytes32 constant DEPOSIT_EVENT = keccak256("AssetReserveDeposit");
+
+    #[sol(rpc)]
+    contract IntentBook {
+        function getNonce(address _user) public view returns (uint256);
+        function getNonce() public view returns (uint256);
+
+        function getIntent(bytes32 intentId) public view returns (Intent memory);
+
+        function getIntentIdsByAuthor(address author) public view returns (bytes32[] memory);
+
+        function getIntentState(bytes32 intentId) public view returns (IntentState);
+
+        function publishIntent(SignedIntent memory signedIntent) public returns (bytes32);
+    }
+
+    #[sol(rpc)]
+    contract MTokenRegistry {
+        function getMTokenInfo(address mToken) external view returns (MTokenInfo memory);
+
+       function getMTokenForSpokeToken(uint32 chainId, address spokeToken) external view virtual returns (address);
+    }
 
 
 }

@@ -1,15 +1,24 @@
+pub mod arcadia;
 use crate::{
+    client::arcadia::ArcadiaClient,
     error::Error,
-    types::intents::{Intent, SignedIntent},
+    types::{
+        intents::{Intent, SignedIntent},
+        solidity::eip712_intent_hash,
+    },
 };
-use alloy::signers::{Signature, Signer};
+use alloy::{
+    primitives::{Address, B256},
+    providers::{Provider, ProviderBuilder, WalletProvider},
+    signers::{Signature, Signer},
+};
 use jsonrpsee::{
     core::client::ClientT,
     http_client::{HttpClient, HttpClientBuilder},
     rpc_params,
 };
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
-use std::{fmt::Display, time::Duration};
+use std::{fmt::Display, sync::Arc, time::Duration};
 
 #[derive(Debug, Clone)]
 pub struct ClientConfig {
@@ -106,12 +115,25 @@ impl JsonRpcClient {
 pub struct MedusaClient<S: Signer + Send + Sync> {
     rpc_client: JsonRpcClient,
     signer: S,
+    intent_book: Address,
+    m_token_manager: Address,
 }
 
 impl<S: Signer + Send + Sync> MedusaClient<S> {
-    pub async fn new(url: &str, signer: S) -> Result<Self, Error> {
+    pub async fn new(
+        url: &str,
+        signer: S,
+        intent_book: Address,
+        m_token_manager: Address,
+    ) -> Result<Self, Error> {
         let rpc_client = JsonRpcClient::new_http(url).await?;
-        Ok(Self { rpc_client, signer })
+
+        Ok(Self {
+            rpc_client,
+            signer,
+            intent_book,
+            m_token_manager,
+        })
     }
 
     pub fn rpc_client(&self) -> &JsonRpcClient {
@@ -122,8 +144,11 @@ impl<S: Signer + Send + Sync> MedusaClient<S> {
         &mut self.rpc_client
     }
 
-    pub fn propose_intent(&self, signed_intent: SignedIntent) -> Result<(), Error> {
-        todo!()
+    pub async fn propose_intent(&self, signed_intent: SignedIntent) -> Result<(B256, B256), Error> {
+        self.rpc_client
+            .request("proposeIntent", signed_intent)
+            .await
+            .map_err(|e| Error::ClientError(e.to_string()))
     }
 
     pub async fn sign_payload<T: Serialize>(&self, payload: &T) -> Result<Signature, Error> {
@@ -136,10 +161,9 @@ impl<S: Signer + Send + Sync> MedusaClient<S> {
         Ok(signature)
     }
 
-    // TODO: Probably doesn't work; needs to convert to sol type first.
-    // Also, needs to utilize eip712 signing.
     pub async fn sign_intent(&self, intent: Intent) -> Result<SignedIntent, Error> {
-        let signature = self.sign_payload(&intent).await?;
+        let intent_hash = eip712_intent_hash(&intent, self.intent_book);
+        let signature = self.sign_payload(&intent_hash).await?;
         Ok(SignedIntent { intent, signature })
     }
 }
