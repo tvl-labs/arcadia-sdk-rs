@@ -1,6 +1,7 @@
 use alloy::primitives::{B256, Signature};
 pub mod common;
 
+pub mod config;
 pub mod events;
 pub mod intents;
 pub mod receipt;

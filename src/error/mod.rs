@@ -12,6 +12,8 @@ pub enum Error {
     SerdeJsonError(#[from] serde_json::Error),
     #[error(transparent)]
     JsonRpcClientError(#[from] JsonRpcClientError),
+    #[error(transparent)]
+    IoError(#[from] std::io::Error),
     #[error("Client error: {0}")]
     ClientError(String),
     #[error("Transport error: {0}")]
@@ -22,4 +24,6 @@ pub enum Error {
     InvalidUrl(String),
     #[error("Timeout error: {0}")]
     TimeoutError(String),
+    #[error("Config error: {0}")]
+    ConfigError(String),
 }
