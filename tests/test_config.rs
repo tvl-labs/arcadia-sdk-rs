@@ -22,4 +22,22 @@ fn test_spoke_registry() {
         spoke_registry.arcadia_contracts.event_handler,
         address!("f39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
     );
+    assert_eq!(
+        spoke_registry
+            .cross_chain_system_contracts
+            .hyperlane
+            .mailbox,
+        address!("15d34AAf54267DB7D7c367839AAf71A00a2C6A65")
+    );
+    assert_eq!(
+        spoke_registry.cross_chain_system_contracts.hyperlane.igp,
+        address!("9965507D1a55bcC2695C58ba16FB37d819B0A4dc")
+    );
+    assert_eq!(
+        spoke_registry
+            .cross_chain_system_contracts
+            .hyperlane
+            .gas_amount_oracle,
+        address!("976EA74026E726554dB657fA54763abd0C3a0aa9")
+    );
 }
