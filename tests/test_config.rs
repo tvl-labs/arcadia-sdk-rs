@@ -1,5 +1,5 @@
 use alloy::primitives::{Address, address};
-use arcadia_sdk_rs::types::config::registry::{
+use arcadia_sdk::types::config::registry::{
     CrossChainSystem, CrossChainSystemContracts, load_registry, spoke_registry::SpokeRegistry,
 };
 use std::str::FromStr;

@@ -799,7 +799,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "arcadia-sdk-rs"
+name = "arcadia-sdk"
 version = "0.1.0"
 dependencies = [
  "alloy",
