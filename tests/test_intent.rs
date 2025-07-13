@@ -1,6 +1,6 @@
 use alloy::primitives::{Address, U256, address};
 use arcadia_sdk::types::config::registry::arcadia_registry::ArcadiaChainRegistry;
-use arcadia_sdk::types::config::registry::load_registry;
+use arcadia_sdk::types::config::registry::{get_intent_mtokens_use_record, load_registry};
 use arcadia_sdk::types::intents::Intent;
 use arcadia_sdk::types::{DEFAULT_PRECISION, base_precision};
 use std::ops::Mul;
@@ -30,4 +30,8 @@ fn test_intent_from_json() {
     assert_eq!(curr_outcome_amount, test_amt);
     intent.normalize_outcome_amounts([6]);
     assert_eq!(intent.outcome.m_amounts[0], correct_mtoken_amount);
+
+    let mtokens_use_record = get_intent_mtokens_use_record(&intent, &arcadia_registry);
+    assert_eq!(mtokens_use_record.consumed_mtoken.name, "EthSepUSDC");
+    assert_eq!(mtokens_use_record.outcome_mtokens.len(), 1);
 }

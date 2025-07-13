@@ -53,7 +53,7 @@ pub struct EventProverRegistryEntry {
     pub prover: Address,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct MTokenRegistryEntry {
     pub address: Address,
@@ -63,7 +63,7 @@ pub struct MTokenRegistryEntry {
     pub spoke_chain: MTokenSpokeChainDetails,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct MTokenSpokeChainDetails {
     pub name: String,
