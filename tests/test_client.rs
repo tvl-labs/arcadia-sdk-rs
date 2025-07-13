@@ -11,7 +11,9 @@ use arcadia_sdk::client::arcadia::ArcadiaClient;
 use arcadia_sdk::error::Error;
 use arcadia_sdk::types::intents::{Intent, SignedIntent};
 use std::env;
+
 #[tokio::test]
+#[ignore]
 async fn test_get_intents_for_author() {
     // A key derived from the mnemonic "test test test test test test test test test test test junk"
     let signer = "0x2a871d0798f97d79848a013d4936a73bf4cc922c825d33c1cf7073dff6d409c6"

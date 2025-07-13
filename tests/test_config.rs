@@ -1,6 +1,7 @@
 use alloy::primitives::{Address, address};
 use arcadia_sdk::types::config::registry::{
-    CrossChainSystem, CrossChainSystemContracts, load_registry, spoke_registry::SpokeRegistry,
+    CrossChainSystem, CrossChainSystemContracts, arcadia_registry::ArcadiaChainRegistry,
+    load_registry, spoke_registry::SpokeRegistry,
 };
 use std::str::FromStr;
 
@@ -40,4 +41,28 @@ fn test_spoke_registry() {
             .gas_amount_oracle,
         address!("976EA74026E726554dB657fA54763abd0C3a0aa9")
     );
+}
+
+#[test]
+fn test_arcadia_registry() {
+    let arcadia_registry: ArcadiaChainRegistry =
+        load_registry("tests/config/arcadia.json").unwrap();
+    assert_eq!(arcadia_registry.name, "Arcadia Testnet 2");
+    assert_eq!(arcadia_registry.chain_id, 1098411886);
+    assert_eq!(arcadia_registry.short_name, "arcadia-testnet");
+    assert_eq!(arcadia_registry.native_currency.name, "AIP");
+    assert_eq!(arcadia_registry.native_currency.symbol, "AIP");
+    assert_eq!(arcadia_registry.native_currency.decimals, 18);
+
+    let usdc_arb = arcadia_registry.mtokens.get("arbSepUSDC").unwrap();
+    assert_eq!(usdc_arb.spoke_chain.name, "Arbitrum Sepolia");
+    assert_eq!(usdc_arb.spoke_chain.registry_name, "arbitrumsepolia");
+    assert_eq!(
+        usdc_arb.spoke_chain.spoke_token_address,
+        address!("0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d")
+    );
+    assert_eq!(usdc_arb.spoke_chain.spoke_token_name, "USD Coin");
+    assert_eq!(usdc_arb.spoke_chain.spoke_token_symbol, "USDC");
+    assert_eq!(usdc_arb.spoke_chain.spoke_token_decimals, 6);
+    assert_eq!(usdc_arb.spoke_chain.chain_id, 421614);
 }

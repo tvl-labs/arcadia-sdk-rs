@@ -2,12 +2,12 @@ use alloy::primitives::{B256, Signature};
 use alloy::signers::Signer;
 use alloy::signers::local::PrivateKeySigner;
 use serde::{Deserialize, Serialize};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::ops::{Div, Mul};
 
 use alloy::primitives::{Address, U256, keccak256};
 use alloy::sol_types::SolValue;
 
-use crate::types::{FromSol, SolidityType, ToSol};
+use crate::types::{DEFAULT_PRECISION, FromSol, SolidityType, ToSol};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone)]
 #[serde(rename = "OutcomeAssetStructure")]
@@ -212,6 +212,35 @@ impl Intent {
 
     pub fn intent_id(&self) -> B256 {
         self.intent_hash()
+    }
+
+    pub fn normalize_token_amount(amount: U256, amt_precision: u8) -> U256 {
+        if amt_precision < DEFAULT_PRECISION {
+            let scale = DEFAULT_PRECISION - amt_precision;
+            let scale = U256::from(10).pow(U256::from(scale));
+            amount.mul(scale)
+        } else if amt_precision > DEFAULT_PRECISION {
+            let scale = amt_precision - DEFAULT_PRECISION;
+            let scale = U256::from(10).pow(U256::from(scale));
+            amount.div(scale)
+        } else {
+            amount
+        }
+    }
+
+    pub fn normalize_src_amount(&mut self, curr_precision: u8) {
+        let curr_amt = self.src_amount;
+        self.src_amount = Self::normalize_token_amount(curr_amt, curr_precision);
+    }
+
+    pub fn normalize_outcome_amounts(&mut self, precisions: impl IntoIterator<Item = u8>) {
+        let curr_outcome = &mut self.outcome;
+
+        for (i, precision) in precisions.into_iter().enumerate() {
+            let curr_amt = curr_outcome.m_amounts[i];
+            let new_amt = Self::normalize_token_amount(curr_amt, precision);
+            curr_outcome.m_amounts[i] = new_amt;
+        }
     }
 }
 

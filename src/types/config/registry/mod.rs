@@ -1,7 +1,7 @@
 use crate::error::Error;
 use alloy::primitives::Address;
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
-mod arcadia_registry;
+pub mod arcadia_registry;
 pub mod spoke_registry;
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -10,12 +10,12 @@ pub enum CrossChainSystem {
     Hyperlane,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 pub struct CrossChainSystemContracts {
     pub hyperlane: HyperlaneContracts,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct HyperlaneContracts {
     pub mailbox: Address,

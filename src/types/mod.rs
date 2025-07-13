@@ -1,4 +1,4 @@
-use alloy::primitives::{B256, Signature};
+use alloy::primitives::{B256, Signature, U256};
 pub mod common;
 
 pub mod config;
@@ -11,6 +11,11 @@ pub mod solution;
 use intents::{Intent, SignedIntent};
 use solution::Solution;
 
+pub static DEFAULT_PRECISION: u8 = 18;
+
+pub fn base_precision() -> U256 {
+    U256::from(10).pow(U256::from(DEFAULT_PRECISION))
+}
 pub trait SolidityType {}
 
 pub trait ToSol {
