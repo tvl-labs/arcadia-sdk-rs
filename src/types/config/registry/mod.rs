@@ -1,12 +1,9 @@
-use crate::{
-    error::Error,
-    types::{
-        config::registry::arcadia_registry::{ArcadiaChainRegistry, MTokenRegistryEntry},
-        intents::Intent,
-    },
+use crate::types::{
+    config::registry::arcadia_registry::{ArcadiaChainRegistry, MTokenRegistryEntry},
+    intents::Intent,
 };
 use alloy::primitives::{Address, U256};
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde::{Deserialize, Serialize};
 pub mod arcadia_registry;
 pub mod spoke_registry;
 
@@ -29,9 +26,18 @@ pub struct HyperlaneContracts {
     pub gas_amount_oracle: Address,
 }
 
-pub fn load_registry<C: DeserializeOwned>(file_path: &str) -> Result<C, Error> {
-    let file = std::fs::read_to_string(file_path)?;
-    Ok(serde_json::from_str(&file)?)
+#[macro_export]
+macro_rules! load_registry {
+    ($file_path:literal) => {{
+        use serde::de::DeserializeOwned;
+        use $crate::error::Error;
+
+        fn _load_registry<C: DeserializeOwned>() -> Result<C, Error> {
+            let s = include_str!($file_path);
+            Ok(serde_json::from_str(s)?)
+        }
+        _load_registry()
+    }};
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -39,14 +45,13 @@ pub struct MTokensUseRecord {
     pub consumed_mtoken: MTokenRegistryEntry,
     pub outcome_mtokens: Vec<(U256, MTokenRegistryEntry)>,
 }
+
 pub fn get_intent_mtokens_use_record(
     intent: &Intent,
     registry: &ArcadiaChainRegistry,
 ) -> MTokensUseRecord {
     let mut outcome_mtokens = Vec::new();
-    let mut consumed_mtoken = None;
-
-    consumed_mtoken = registry
+    let consumed_mtoken = registry
         .get_mtoken_entry_by_address(intent.src_m_token)
         .cloned();
 
