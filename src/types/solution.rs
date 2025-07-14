@@ -1,5 +1,5 @@
 use crate::types::common::*;
-use crate::types::{FromSol, SolidityType, ToSol, intents::Intent, receipt::Receipt};
+use crate::types::{FromSol, ToSol, intents::Intent, receipt::Receipt};
 
 use alloy::primitives::{Address, Signature, U256, keccak256};
 use alloy::sol_types::SolValue;

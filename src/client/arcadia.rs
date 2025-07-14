@@ -1,14 +1,6 @@
-use crate::{
-    error::Error,
-    types::solidity::{Intent, IntentBook, MTokenInfo, MTokenRegistry},
-};
+use crate::{error::Error, types::solidity::IntentBook};
+use alloy::primitives::{Address, B256};
 use alloy::providers::{Provider, WalletProvider};
-use alloy::signers::Signer;
-use alloy::{
-    primitives::{Address, B256},
-    providers::ProviderBuilder,
-};
-use reqwest::Url;
 use std::sync::Arc;
 
 pub struct ArcadiaClient<P> {

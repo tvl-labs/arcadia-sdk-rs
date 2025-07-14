@@ -1,6 +1,5 @@
 pub mod arcadia;
 use crate::{
-    client::arcadia::ArcadiaClient,
     error::Error,
     types::{
         intents::{Intent, SignedIntent},
@@ -9,7 +8,6 @@ use crate::{
 };
 use alloy::{
     primitives::{Address, B256},
-    providers::{Provider, ProviderBuilder, WalletProvider},
     signers::{Signature, Signer},
 };
 use jsonrpsee::{
@@ -17,8 +15,8 @@ use jsonrpsee::{
     http_client::{HttpClient, HttpClientBuilder},
     rpc_params,
 };
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
-use std::{fmt::Display, sync::Arc, time::Duration};
+use serde::{Serialize, de::DeserializeOwned};
+use std::time::Duration;
 
 #[derive(Debug, Clone)]
 pub struct ClientConfig {
@@ -116,7 +114,7 @@ pub struct MedusaClient<S: Signer + Send + Sync> {
     rpc_client: JsonRpcClient,
     signer: S,
     intent_book: Address,
-    m_token_manager: Address,
+    _m_token_manager: Address,
 }
 
 impl<S: Signer + Send + Sync> MedusaClient<S> {
@@ -124,7 +122,7 @@ impl<S: Signer + Send + Sync> MedusaClient<S> {
         url: &str,
         signer: S,
         intent_book: Address,
-        m_token_manager: Address,
+        _m_token_manager: Address,
     ) -> Result<Self, Error> {
         let rpc_client = JsonRpcClient::new_http(url).await?;
 
@@ -132,7 +130,7 @@ impl<S: Signer + Send + Sync> MedusaClient<S> {
             rpc_client,
             signer,
             intent_book,
-            m_token_manager,
+            _m_token_manager,
         })
     }
 

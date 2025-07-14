@@ -7,7 +7,6 @@ mod tests {
     use crate::types::intents::{FillStructure, Outcome, OutcomeAssetStructure};
     use crate::types::solution::{FillRecord, MoveRecord, OutType, OutputIdx};
     use crate::types::{FromSol, ToSol};
-    use crate::types::{events, intents, receipt, solidity, solution};
     use crate::types::{
         events::XChainEvent, intents::Intent, receipt::Receipt, solution::Solution,
     };

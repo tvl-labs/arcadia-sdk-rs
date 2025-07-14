@@ -1,13 +1,12 @@
-use alloy::primitives::{Address, address};
+use alloy::primitives::address;
+use arcadia_sdk::load_registry;
 use arcadia_sdk::types::config::registry::{
-    CrossChainSystem, CrossChainSystemContracts, arcadia_registry::ArcadiaChainRegistry,
-    load_registry, spoke_registry::SpokeRegistry,
+    CrossChainSystem, arcadia_registry::ArcadiaChainRegistry, spoke_registry::SpokeRegistry,
 };
-use std::str::FromStr;
 
 #[test]
 fn test_spoke_registry() {
-    let spoke_registry: SpokeRegistry = load_registry("tests/config/arbitrum.json").unwrap();
+    let spoke_registry: SpokeRegistry = load_registry!("config/arbitrum.json").unwrap();
     assert_eq!(spoke_registry.name, "Arbitrum");
     assert_eq!(spoke_registry.chain_id, 42161);
     assert_eq!(spoke_registry.short_name, "arbitrum");
@@ -45,8 +44,7 @@ fn test_spoke_registry() {
 
 #[test]
 fn test_arcadia_registry() {
-    let arcadia_registry: ArcadiaChainRegistry =
-        load_registry("tests/config/arcadia.json").unwrap();
+    let arcadia_registry: ArcadiaChainRegistry = load_registry!("config/arcadia.json").unwrap();
     assert_eq!(arcadia_registry.name, "Arcadia Testnet 2");
     assert_eq!(arcadia_registry.chain_id, 1098411886);
     assert_eq!(arcadia_registry.short_name, "arcadia-testnet");
