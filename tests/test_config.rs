@@ -1,7 +1,8 @@
 use alloy::primitives::address;
 use arcadia_sdk::load_registry;
 use arcadia_sdk::types::config::registry::{
-    CrossChainSystem, arcadia_registry::ArcadiaChainRegistry, spoke_registry::SpokeRegistry,
+    CrossChainSystem, arcadia_registry::ArcadiaChainRegistry, load_registry_runtime,
+    spoke_registry::SpokeRegistry,
 };
 
 #[test]
@@ -63,4 +64,38 @@ fn test_arcadia_registry() {
     assert_eq!(usdc_arb.spoke_chain.spoke_token_symbol, "USDC");
     assert_eq!(usdc_arb.spoke_chain.spoke_token_decimals, 6);
     assert_eq!(usdc_arb.spoke_chain.chain_id, 421614);
+}
+
+#[test]
+fn test_load_registry_runtime_success() {
+    let spoke_registry: SpokeRegistry =
+        load_registry_runtime("tests/config/arbitrum.json").unwrap();
+    assert_eq!(spoke_registry.name, "Arbitrum");
+    assert_eq!(spoke_registry.chain_id, 42161);
+    assert_eq!(spoke_registry.short_name, "arbitrum");
+
+    let arcadia_registry: ArcadiaChainRegistry =
+        load_registry_runtime("tests/config/arcadia.json").unwrap();
+    assert_eq!(arcadia_registry.name, "Arcadia Testnet 2");
+    assert_eq!(arcadia_registry.chain_id, 1098411886);
+    assert_eq!(arcadia_registry.short_name, "arcadia-testnet");
+}
+
+#[test]
+fn test_load_registry_runtime_file_not_found() {
+    let result: Result<SpokeRegistry, std::io::Error> =
+        load_registry_runtime("non_existent_file.json");
+    assert!(result.is_err());
+    assert_eq!(result.unwrap_err().kind(), std::io::ErrorKind::NotFound);
+}
+
+#[test]
+fn test_load_registry_runtime_invalid_json() {
+    let invalid_json_content = r#"{"invalid": json syntax"#;
+    std::fs::write("tests/invalid_test.json", invalid_json_content).unwrap();
+
+    let result: Result<SpokeRegistry, std::io::Error> =
+        load_registry_runtime("tests/invalid_test.json");
+    assert!(result.is_err());
+    std::fs::remove_file("tests/invalid_test.json").unwrap();
 }

@@ -3,7 +3,8 @@ use crate::types::{
     intents::Intent,
 };
 use alloy::primitives::{Address, U256};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
+
 pub mod arcadia_registry;
 pub mod spoke_registry;
 
@@ -44,6 +45,11 @@ macro_rules! load_registry {
 pub struct MTokensUseRecord {
     pub consumed_mtoken: MTokenRegistryEntry,
     pub outcome_mtokens: Vec<(U256, MTokenRegistryEntry)>,
+}
+
+pub fn load_registry_runtime<C: DeserializeOwned>(file_path: &str) -> Result<C, std::io::Error> {
+    let s = std::fs::read_to_string(file_path)?;
+    Ok(serde_json::from_str(&s)?)
 }
 
 pub fn get_intent_mtokens_use_record(
