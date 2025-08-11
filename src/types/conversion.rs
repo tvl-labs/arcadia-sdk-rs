@@ -15,8 +15,10 @@ use super::solution::{
     OutputIdx as RpcOutputIdx, SignedSolution as RpcSignedSolution, Solution as RpcSolution,
 };
 
+#[allow(dead_code)]
 pub trait RpcType {}
 
+#[allow(dead_code)]
 pub trait SolidityType {}
 
 pub trait RpcToSol {
@@ -31,10 +33,12 @@ pub trait SolToRpc {
     fn convert_to_rpc_type(&self) -> Self::RpcType;
 }
 
+#[allow(dead_code)]
 pub trait ToIntent {
     fn to_intent(&self) -> RpcIntent;
 }
 
+#[allow(dead_code)]
 pub trait ToSolution {
     fn to_solution(&self) -> RpcSolution;
 }
