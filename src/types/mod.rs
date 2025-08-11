@@ -1,4 +1,3 @@
-use alloy::primitives::{B256, Signature};
 pub mod common;
 
 pub mod events;
@@ -7,6 +6,8 @@ pub mod receipt;
 pub mod rpc;
 pub mod solidity;
 
+mod conversion;
+mod sol_types;
 pub mod solution;
 use intents::{Intent, SignedIntent};
 use solution::Solution;
