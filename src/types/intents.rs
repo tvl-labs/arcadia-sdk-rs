@@ -1,7 +1,6 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use alloy::primitives::{Address, Signature, U64, U256, keccak256};
-use alloy::signers::local::PrivateKeySigner;
+use alloy::primitives::{Address, Signature, U256, keccak256};
 use alloy::sol_types::SolValue;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};

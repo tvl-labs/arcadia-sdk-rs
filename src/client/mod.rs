@@ -6,6 +6,7 @@ use jsonrpsee::rpc_params;
 use serde::de::DeserializeOwned;
 
 use super::types::intents::SignedIntent;
+use super::types::rpc_payloads::SignedPayloadIntentId;
 
 use anyhow::Result;
 
@@ -53,12 +54,16 @@ impl MedusaClient {
         Ok(res)
     }
 
-    pub async fn cancel_intent(&self, intent_id: B256) -> Result<B256> {
+    pub async fn cancel_intent(&self, intent_id: SignedPayloadIntentId) -> Result<B256> {
+        let raw_intent_id = intent_id.payload.intent_id;
         let params = rpc_params![intent_id];
         let tx_hash: B256 = self
             .call_rpc("cancelIntent", params, "Intent cancelled")
             .await?;
-        info!("Intent {} is cancelled. tx hash: {}", intent_id, tx_hash);
+        info!(
+            "Intent {:?} is cancelled. tx hash: {}",
+            raw_intent_id, tx_hash
+        );
         Ok(tx_hash)
     }
 

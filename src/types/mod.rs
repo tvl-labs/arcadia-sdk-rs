@@ -4,6 +4,7 @@ pub mod events;
 pub mod intents;
 pub mod receipt;
 pub mod rpc;
+pub mod rpc_payloads;
 pub mod solidity;
 
 mod conversion;
