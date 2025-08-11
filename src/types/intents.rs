@@ -157,7 +157,10 @@ impl Intent {
         }
     }
 
-    pub async fn sign(&self, signer: PrivateKeySigner, intent_book: Address) -> SignedIntent {
+    pub async fn sign<S>(&self, signer: &S, intent_book: Address) -> SignedIntent
+    where
+        S: alloy::signers::Signer,
+    {
         let hash = eip712_intent_hash(self, intent_book);
         println!("hash: {:?}", hash);
         println!("intent id: {:?}", self.intent_id());
