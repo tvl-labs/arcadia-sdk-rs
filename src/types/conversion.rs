@@ -109,7 +109,8 @@ pub mod rpc_to_sol {
         fn convert_to_sol_type(&self) -> Self::SolType {
             Intent {
                 author: self.author,
-                deadline: self.deadline,
+                validBefore: self.valid_before,
+                validAfter: self.valid_after,
                 nonce: self.nonce,
                 srcMToken: self.src_m_token,
                 srcAmount: self.src_amount,
@@ -321,7 +322,8 @@ pub mod sol_to_rpc {
         fn convert_to_rpc_type(&self) -> Self::RpcType {
             RpcIntent {
                 author: self.author,
-                deadline: self.deadline,
+                valid_before: self.validBefore,
+                valid_after: self.validAfter,
                 nonce: self.nonce,
                 src_m_token: self.srcMToken,
                 src_amount: self.srcAmount,

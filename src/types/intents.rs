@@ -62,8 +62,10 @@ pub struct Outcome {
 #[serde(rename_all = "camelCase")]
 pub struct Intent {
     pub author: Address,
-    #[serde_as(as = "TryFromInto<U64>")]
-    pub deadline: u64,
+    #[serde_as(as = "TryFromInto<U256>")]
+    pub valid_before: U256,
+    #[serde_as(as = "TryFromInto<U256>")]
+    pub valid_after: U256,
     pub nonce: U256,
     pub src_m_token: Address,
     pub src_amount: U256,
@@ -130,7 +132,7 @@ impl RpcType for Outcome {}
 impl Intent {
     pub fn simple_swap(
         author: Address,
-        deadline: u64,
+        deadline: U256,
         nonce: Option<U256>,
         src_m_token: Address,
         src_amount: impl Into<U256> + Copy,
@@ -146,7 +148,8 @@ impl Intent {
         };
         Intent {
             author,
-            deadline,
+            valid_before: deadline,
+            valid_after: U256::from(0),
             nonce,
             src_m_token,
             src_amount: src_amount.into(),

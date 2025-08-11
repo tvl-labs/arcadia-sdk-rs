@@ -41,7 +41,8 @@ sol! {
 
     struct Intent {
         address author;
-        uint64 deadline;
+        uint256 validBefore;
+        uint256 validAfter;
         uint256 nonce;
         address srcMToken;
         uint256 srcAmount;
@@ -122,7 +123,7 @@ sol! {
         error IntentBook__IntentNotFound(bytes32 intentId);
         error IntentBook__CannotSpendIntentThatIsNotOpen(bytes32 intentId);
         error IntentBook__SpendingPartiallyFillableIntentMustMakeProgress();
-        error IntentBook__IntentVersionsCannotChangeDeadlineWhenSpent();
+        error IntentBook__IntentVersionsCannotChangeValidBeforeWhenSpent();
         error IntentBook__FillGraphCannotBeEmpty();
         error IntentBook__UnauthorizedSolver();
         error IntentBook__IntentPredecessorRootDoesNotMatch();
@@ -270,7 +271,8 @@ impl From<intents::Intent> for Intent {
     fn from(i: intents::Intent) -> Self {
         Intent {
             author: i.author,
-            deadline: i.deadline,
+            validBefore: i.valid_before,
+            validAfter: i.valid_after,
             nonce: i.nonce,
             srcMToken: i.src_m_token,
             srcAmount: i.src_amount,
