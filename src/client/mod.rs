@@ -71,7 +71,7 @@ impl MedusaClient {
         let params = rpc_params![user, mtoken];
         let res: U256 = self
             .call_rpc(
-                "getMTokenBalanceByAuthor",
+                "getMtokenBalanceByAuthor",
                 params,
                 "Failed to get mtoken balance",
             )
