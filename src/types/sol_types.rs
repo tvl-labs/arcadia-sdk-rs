@@ -110,8 +110,47 @@ sol! {
     // We put all errors here so that we can decode them all with AllErrors.
     #[derive(Debug)]
     contract All {
+        error IntentValidator__PublishError__ValidAfterLargerThanValidBefore();
+        error IntentValidator__PublishError__InvalidIntentNonce();
+        error IntentValidator__PublishError__IntentExpired();
+        error IntentValidator__PublishError__MissingField(bytes32 intentId);
+        error IntentValidator__PublishError__MAmountsMustYieldManageableOutcomes();
+        error IntentValidator__PublishError__IntentAlreadyExists(bytes32 intentId);
+        error IntentValidator__PublishError__OutcomeMTokenAndMAmountLengthMismatch(bytes32 intentId);
+        error IntentValidator__PublishError__UnsupportedIntentType(bytes32 intentId);
+        error IntentValidator__PublishError__ZeroOutcomeToken(bytes32 intentId, uint256 index);
+        error IntentValidator__PublishError__ZeroOutcomeAmount(bytes32 intentId, uint256 index);
+        error IntentValidator__CancelError__IntentNotOpen(bytes32 intentId);
+        error SolutionValidator__IntentNotOpen(bytes32 intentId);
+        error SolutionValidator__IntentExpired(bytes32 intentId);
+        error SolutionValidator__IntentValidAfterNotReached(bytes32 intentId);
+        error SolutionValidator__EmptySolution();
+        error SolutionValidator__SolutionMustHaveReceiptOutputs();
+        error SolutionValidator__ChildIntentAuthorMismatch(uint256 intentIdx);
+        error SolutionValidator__ChildIntentMTokenMismatch(uint256 intentIdx);
+        error SolutionValidator__ChildIntentValidBeforeMismatch(uint256 intentIdx);
+        error SolutionValidator__ChildIntentValidAfterMismatch(uint256 intentIdx);
+        error SolutionValidator__ChildIntentInvalidNonce(uint256 intentIdx);
+        error SolutionValidator__ChildIntentOutcomeMismatch(uint256 intentIdx);
+        error SolutionValidator__IntentSpentAmountMismatch(uint256 intentIdx, uint256 moveIdx);
+        error SolutionValidator__ReceiptMTokenMismatch(uint256 intentIdx);
+        error SolutionValidator__InvalidMoveRecord(uint256 intentIdx, uint256 moveIdx);
+        error SolutionValidator__ReceiptMTokenNotFoundInIntentOutcome(uint256 intentIdx);
+        error SolutionValidator__IntentTokenBurnt(uint256 intentIdx);
+        error SolutionValidator__IntentTokenDoubleSpent(uint256 intentIdx);
+        error SolutionValidator__IntentFillError__MultipleMTokensFilledForAnySingleIntent(uint256 intentIdx);
+        error SolutionValidator__IntentFillError__NoMTokensFilledForAnySingleIntent(uint256 intentIdx);
+        error SolutionValidator__MoveRecordOutputIdxOutOfBounds(uint256 moveIdx);
+        error SolutionValidator__FillRecordOutputIdxOutOfBounds(uint256 fillIdx);
+        error SolutionValidator__IntentMustSpendMToken(uint256 intentIdx);
+        error SolutionValidator__PercentageIntentNotSatisfied(uint256 intentIdx);
+        error SolutionValidator__ExactIntentMustSpendAllMTokens(uint256 intentIdx);
+        error SolutionValidator__ExactIntentNotSatisfied(uint256 intentIdx);
+        error SolutionValidator__UnsupportedFillStructure(uint256 intentIdx);
+        error IntentBook__ValidAfterLargerThanValidBefore();
         error IntentBook__InvalidIntentNonce();
         error IntentBook__IntentExpired();
+        error IntentBook__IntentNonactivated();
         error IntentBook__IntentAlreadyExists(bytes32 _intentId);
         error IntentBook__UnauthorizedIntentPublisher();
         error IntentBook__CannotLockIntentThatIsNotOpen(bytes32 intentId);
@@ -124,10 +163,12 @@ sol! {
         error IntentBook__CannotSpendIntentThatIsNotOpen(bytes32 intentId);
         error IntentBook__SpendingPartiallyFillableIntentMustMakeProgress();
         error IntentBook__IntentVersionsCannotChangeValidBeforeWhenSpent();
+        error IntentBook__IntentVersionsCannotChangeValidAfterWhenSpent();
         error IntentBook__FillGraphCannotBeEmpty();
-        error IntentBook__UnauthorizedSolver();
         error IntentBook__IntentPredecessorRootDoesNotMatch();
         error IntentBook__InvalidTimestamp();
+        error IntentBook__IntentIdAuthorMismatch();
+        error IntentBook__PercentageCannotBeZero();
 
         // MTokenManager errors.
         error UnauthorizedCaller();
