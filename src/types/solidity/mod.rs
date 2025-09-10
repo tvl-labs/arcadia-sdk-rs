@@ -1,3 +1,5 @@
+pub mod contract;
+
 use alloy::sol;
 
 sol! {
