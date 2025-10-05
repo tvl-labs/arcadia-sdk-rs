@@ -1,6 +1,6 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use alloy::primitives::{Address, Signature, U256, keccak256};
+use alloy::primitives::{Address, Bytes, Signature, U256, keccak256};
 use alloy::sol_types::SolValue;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
@@ -74,7 +74,7 @@ pub struct Intent {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SignedIntent {
     pub intent: Intent,
-    pub signature: Signature,
+    pub signature: Bytes,
 }
 
 impl SignedIntent {
@@ -166,7 +166,7 @@ impl Intent {
         let sig = signer.sign_hash(&hash).await.unwrap();
         SignedIntent {
             intent: self.clone(),
-            signature: sig,
+            signature: sig.as_bytes().to_vec().into(),
         }
     }
 

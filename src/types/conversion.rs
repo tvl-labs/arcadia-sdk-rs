@@ -1,5 +1,3 @@
-use alloy::primitives::Signature;
-
 use super::common::*;
 
 use super::events::{AssetReserveDeposit as RpcAssetReserveDeposit, XChainEvent as RpcXChainEvent};
@@ -129,7 +127,7 @@ pub mod rpc_to_sol {
         fn convert_to_sol_type(&self) -> Self::SolType {
             SignedIntent {
                 intent: self.intent.convert_to_sol_type(),
-                signature: self.signature.as_bytes().to_vec().into(),
+                signature: self.signature.clone(),
             }
         }
     }
@@ -342,7 +340,7 @@ pub mod sol_to_rpc {
         fn convert_to_rpc_type(&self) -> Self::RpcType {
             RpcSignedIntent {
                 intent: self.intent.convert_to_rpc_type(),
-                signature: Signature::from_raw(&self.signature).unwrap(),
+                signature: self.signature.clone(),
             }
         }
     }
