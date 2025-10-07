@@ -74,9 +74,9 @@ impl MedusaClient {
         teller: Address,
         shares_to_burn: U256,
         mtoken: Address,
-        fee_percentage: u16,
+        fee_basis_points: u16,
     ) -> Result<U256> {
-        let params = rpc_params![teller, shares_to_burn, mtoken, fee_percentage];
+        let params = rpc_params![teller, mtoken, shares_to_burn, fee_basis_points];
         let res: U256 = self
             .call_rpc("previewMaximumWithdrawFromVault", params)
             .await?;
