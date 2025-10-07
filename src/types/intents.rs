@@ -161,8 +161,6 @@ impl Intent {
         S: alloy::signers::Signer,
     {
         let hash = eip712_intent_hash(self, intent_book);
-        println!("hash: {:?}", hash);
-        println!("intent id: {:?}", self.intent_id());
         let sig = signer.sign_hash(&hash).await.unwrap();
         SignedIntent {
             intent: self.clone(),
@@ -171,7 +169,7 @@ impl Intent {
     }
 
     pub fn intent_hash(&self) -> B256 {
-        let sol_intent = self.convert_to_sol_type(); //
+        let sol_intent = self.convert_to_sol_type();
         keccak256(sol_intent.abi_encode())
     }
 
