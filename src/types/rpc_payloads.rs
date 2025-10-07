@@ -31,6 +31,19 @@ pub struct WithdrawalPayload {
 pub type SignedWithdrawalPayload = SignedPayload<WithdrawalPayload>;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct VaultWithdrawalPayload {
+    pub depositor_address: Address,
+    pub teller_address: Address,
+    pub asset: Address,
+    pub shares: U256,
+    pub min_amount: U256,
+    pub fee_percentage: u16,
+    pub nonce: U256,
+    pub chain_id: u64,
+}
+pub type SignedVaultWithdrawalPayload = SignedPayload<VaultWithdrawalPayload>;
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SignedPayload<T> {
     pub payload: T,
     pub signature: Signature,

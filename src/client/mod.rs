@@ -6,7 +6,7 @@ use jsonrpsee::rpc_params;
 use serde::de::DeserializeOwned;
 
 use super::types::intents::SignedIntent;
-use super::types::rpc_payloads::SignedPayloadIntentId;
+use super::types::rpc_payloads::{SignedPayloadIntentId, SignedVaultWithdrawalPayload};
 
 use anyhow::Result;
 
@@ -25,7 +25,7 @@ impl MedusaClient {
         }
     }
 
-    async fn call_rpc<T, P>(&self, method: &str, params: P, operation: &str) -> Result<T>
+    async fn call_rpc<T, P>(&self, method: &str, params: P) -> Result<T>
     where
         T: DeserializeOwned,
         P: Send + Sync + ToRpcParams,
@@ -35,8 +35,8 @@ impl MedusaClient {
             .request::<T, _>(method, params)
             .await
             .map_err(|e| {
-                error!("{} failed with error: {}", operation, e);
-                anyhow::anyhow!("{} failed", operation)
+                error!("{} failed with error: {}", method, e);
+                anyhow::anyhow!("{} failed", method)
             })?;
 
         Ok(res)
@@ -44,9 +44,7 @@ impl MedusaClient {
 
     pub async fn publish_intent(&self, intent: &SignedIntent) -> Result<(B256, B256)> {
         let params = rpc_params![intent];
-        let res: (B256, B256) = self
-            .call_rpc("proposeIntent", params, "Intent published")
-            .await?;
+        let res: (B256, B256) = self.call_rpc("proposeIntent", params).await?;
         info!(
             "Intent {:?} published. intent id: {}, tx hash: {}",
             intent.intent, res.1, res.0
@@ -57,9 +55,7 @@ impl MedusaClient {
     pub async fn cancel_intent(&self, intent_id: SignedPayloadIntentId) -> Result<B256> {
         let raw_intent_id = intent_id.payload.intent_id;
         let params = rpc_params![intent_id];
-        let tx_hash: B256 = self
-            .call_rpc("cancelIntent", params, "Intent cancelled")
-            .await?;
+        let tx_hash: B256 = self.call_rpc("cancelIntent", params).await?;
         info!(
             "Intent {:?} is cancelled. tx hash: {}",
             raw_intent_id, tx_hash
@@ -69,13 +65,39 @@ impl MedusaClient {
 
     pub async fn get_mtoken_balance(&self, user: Address, mtoken: Address) -> Result<U256> {
         let params = rpc_params![user, mtoken];
+        let res: U256 = self.call_rpc("getMtokenBalanceByAuthor", params).await?;
+        Ok(res)
+    }
+
+    pub async fn preview_withdraw(
+        &self,
+        teller: Address,
+        shares_to_burn: U256,
+        mtoken: Address,
+        fee_percentage: u16,
+    ) -> Result<U256> {
+        let params = rpc_params![teller, shares_to_burn, mtoken, fee_percentage];
         let res: U256 = self
-            .call_rpc(
-                "getMtokenBalanceByAuthor",
-                params,
-                "Failed to get mtoken balance",
-            )
+            .call_rpc("previewMaximumWithdrawFromVault", params)
             .await?;
+        Ok(res)
+    }
+
+    pub async fn request_withdraw(&self, payload: SignedVaultWithdrawalPayload) -> Result<U256> {
+        let params = rpc_params![payload];
+        let res: U256 = self.call_rpc("requestWithdrawFromVault", params).await?;
+        Ok(res)
+    }
+
+    pub async fn get_vault_total_asset_value(&self, teller: Address) -> Result<U256> {
+        let params = rpc_params![teller];
+        let res: U256 = self.call_rpc("getVaultTotalAssetValue", params).await?;
+        Ok(res)
+    }
+
+    pub async fn get_vault_total_shares(&self, teller: Address) -> Result<U256> {
+        let params = rpc_params![teller];
+        let res: U256 = self.call_rpc("getVaultTotalShares", params).await?;
         Ok(res)
     }
 }
