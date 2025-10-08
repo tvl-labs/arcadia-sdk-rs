@@ -1,12 +1,34 @@
 use alloy::primitives::{Address, B256, Signature, U256};
 use serde::{Deserialize, Serialize};
 
+macro_rules! impl_signable {
+    ($type:ty) => {
+        impl $type {
+            pub async fn sign(
+                self,
+                signer: &(impl alloy::signers::Signer + Send + Sync),
+            ) -> Result<SignedPayload<Self>, alloy::signers::Error> {
+                let bytes = bcs::to_bytes(&self).map_err(|e| {
+                    alloy::signers::Error::other(format!("BCS serialization failed: {}", e))
+                })?;
+                let signature = signer.sign_message(&bytes).await?;
+                Ok(SignedPayload {
+                    payload: self,
+                    signature,
+                })
+            }
+        }
+    };
+}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct PayloadIntentId {
     pub intent_id: B256,
     pub nonce: U256,
     pub chain_id: u64,
 }
+
+impl_signable!(PayloadIntentId);
 
 pub type SignedPayloadIntentId = SignedPayload<PayloadIntentId>;
 
@@ -16,6 +38,8 @@ pub struct PayloadAddress {
     pub nonce: U256,
     pub chain_id: u64,
 }
+
+impl_signable!(PayloadAddress);
 
 pub type SignedPayloadAddress = SignedPayload<PayloadAddress>;
 
@@ -27,6 +51,8 @@ pub struct WithdrawalPayload {
     pub nonce: U256,
     pub chain_id: u64,
 }
+
+impl_signable!(WithdrawalPayload);
 
 pub type SignedWithdrawalPayload = SignedPayload<WithdrawalPayload>;
 
@@ -41,6 +67,9 @@ pub struct VaultWithdrawalPayload {
     pub nonce: U256,
     pub chain_id: u64,
 }
+
+impl_signable!(VaultWithdrawalPayload);
+
 pub type SignedVaultWithdrawalPayload = SignedPayload<VaultWithdrawalPayload>;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

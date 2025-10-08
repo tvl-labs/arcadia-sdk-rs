@@ -69,7 +69,7 @@ impl MedusaClient {
         Ok(res)
     }
 
-    pub async fn preview_withdraw(
+    pub async fn preview_vault_withdraw(
         &self,
         teller: Address,
         shares_to_burn: U256,
@@ -83,9 +83,12 @@ impl MedusaClient {
         Ok(res)
     }
 
-    pub async fn request_withdraw(&self, payload: SignedVaultWithdrawalPayload) -> Result<U256> {
+    pub async fn request_vault_withdraw(
+        &self,
+        payload: SignedVaultWithdrawalPayload,
+    ) -> Result<B256> {
         let params = rpc_params![payload];
-        let res: U256 = self.call_rpc("requestWithdrawFromVault", params).await?;
+        let res: B256 = self.call_rpc("requestWithdrawFromVault", params).await?;
         Ok(res)
     }
 
