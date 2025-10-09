@@ -5,7 +5,7 @@ use jsonrpsee::http_client::HttpClient;
 use jsonrpsee::rpc_params;
 use serde::de::DeserializeOwned;
 
-use super::types::intents::SignedIntent;
+use super::types::intents::{FillStructure, Intent, SignedIntent};
 use super::types::rpc_payloads::{SignedPayloadIntentId, SignedVaultWithdrawalPayload};
 
 use anyhow::Result;
@@ -40,6 +40,15 @@ impl MedusaClient {
             })?;
 
         Ok(res)
+    }
+
+    pub async fn get_active_lp_intents(&self, author: Address) -> Result<Vec<Intent>> {
+        let params = rpc_params![author];
+        let res: Vec<Intent> = self.call_rpc("getActiveIntentsByAuthor", params).await?;
+        Ok(res
+            .into_iter()
+            .filter(|intent| intent.outcome.fill_structure == FillStructure::PercentageFilled)
+            .collect())
     }
 
     pub async fn publish_intent(&self, intent: &SignedIntent) -> Result<(B256, B256)> {
