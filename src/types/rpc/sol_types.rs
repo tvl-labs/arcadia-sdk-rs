@@ -437,3 +437,22 @@ impl SolidityType for MoveRecord {}
 impl SolidityType for FillRecord {}
 impl SolidityType for Solution {}
 impl SolidityType for SignedSolution {}
+
+impl FastWithdrawalPermit {
+    pub async fn sign(
+        self,
+        signer: &(impl alloy::signers::Signer + Send + Sync),
+        chain_id: u64,
+        mtoken_manager: Address,
+    ) -> Result<alloy::primitives::Bytes, alloy::signers::Error> {
+        let domain = eip712_domain! {
+            name: "FastWithdrawalPermit".to_string(),
+            version: "1.0.0".to_string(),
+            chain_id: chain_id,
+            verifying_contract: mtoken_manager,
+        };
+        let hash = self.eip712_signing_hash(&domain);
+        let signature = signer.sign_hash(&hash).await?;
+        Ok(signature.as_bytes().to_vec().into())
+    }
+}
