@@ -4,7 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-alloy = { version = "1.0.6", features = ["full", "signer-aws"] }
+alloy = { version = "1.0.6", features = [
+    "full",
+    "signer-aws",
+    "dyn-abi",
+    "eip712",
+] }
 anyhow = "1.0.98"
 hex = "0.4.3"
 jsonrpsee = { version = "0.25.1", features = ["full"] }

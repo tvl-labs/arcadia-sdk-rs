@@ -1,6 +1,7 @@
 use alloy::primitives::{Address, B256};
 use alloy::sol;
 use alloy::sol_types::{Eip712Domain, SolStruct, eip712_domain};
+use serde::{Deserialize, Serialize};
 
 use super::conversion::{RpcToSol, SolidityType};
 use super::intents::Intent as RpcIntent;
@@ -54,15 +55,16 @@ sol! {
         bytes signature;
     }
 
+    #[derive(Debug)]
     enum IntentState {
         NonExistent,
-        Locked,
-        Settled,
         Open,
+        Locked,
         Solved,
+        Settled,
         Expired,
         Cancelled,
-        Error,
+        Error
     }
 
     struct Receipt {
@@ -72,6 +74,7 @@ sol! {
         bytes32 intentHash;
     }
 
+    #[derive(Debug)]
     enum OutType {
         Intent,
         Receipt
@@ -88,6 +91,7 @@ sol! {
         uint256 qty;
     }
 
+    #[derive(Debug)]
     struct FillRecord {
         uint64 inIdx;
         uint64 outIdx;
@@ -105,6 +109,18 @@ sol! {
     struct SignedSolution {
         Solution solution;
         bytes signature;
+    }
+
+    #[derive(Serialize, Deserialize, Debug)]
+    struct FastWithdrawalPermit {
+        uint256 nonce;
+        uint32 spokeChainId;
+        /// The spoke token address (not the mtoken address).
+        address token;
+        /// The amount in 18 decimals.
+        uint256 amount;
+        address user;
+        address caller;
     }
 
     // We put all errors here so that we can decode them all with AllErrors.
@@ -132,10 +148,17 @@ sol! {
         error SolutionValidator__ChildIntentValidAfterMismatch(uint256 intentIdx);
         error SolutionValidator__ChildIntentInvalidNonce(uint256 intentIdx);
         error SolutionValidator__ChildIntentOutcomeMismatch(uint256 intentIdx);
+        error SolutionValidator__DuplicateIntentId(bytes32 intentId);
+        error SolutionValidator__UnfilledInputIntent(uint256 intentIdx);
+        error SolutionValidator__DuplicateOutputIntentNonce(uint256 intentIdx1, uint256 intentIdx2);
+        error SolutionValidator__OrphanIntentOutput(uint256 intentIdx);
+        error SolutionValidator__OrphanReceiptOutput(uint256 receiptIdx);
+        error SolutionValidator__MoveRecordSrcIdxOutOfBounds(uint256 moveIdx);
+        error SolutionValidator__FillRecordInIdxOutOfBounds(uint256 fillIdx);
         error SolutionValidator__IntentSpentAmountMismatch(uint256 intentIdx, uint256 moveIdx);
         error SolutionValidator__ReceiptMTokenMismatch(uint256 intentIdx);
         error SolutionValidator__InvalidMoveRecord(uint256 intentIdx, uint256 moveIdx);
-        error SolutionValidator__ReceiptMTokenNotFoundInIntentOutcome(uint256 intentIdx);
+        error SolutionValidator__ReceiptMTokenNotFoundInIntentOutcome(uint256 intentIdx, uint256 receiptIdx);
         error SolutionValidator__IntentTokenBurnt(uint256 intentIdx);
         error SolutionValidator__IntentTokenDoubleSpent(uint256 intentIdx);
         error SolutionValidator__IntentFillError__MultipleMTokensFilledForAnySingleIntent(uint256 intentIdx);
@@ -143,7 +166,7 @@ sol! {
         error SolutionValidator__MoveRecordOutputIdxOutOfBounds(uint256 moveIdx);
         error SolutionValidator__FillRecordOutputIdxOutOfBounds(uint256 fillIdx);
         error SolutionValidator__IntentMustSpendMToken(uint256 intentIdx);
-        error SolutionValidator__PercentageIntentNotSatisfied(uint256 intentIdx);
+        error SolutionValidator__PercentageIntentNotSatisfied(uint256 intentIdx, uint256 amtSpent, uint256 expectedSpentAmt);
         error SolutionValidator__ExactIntentMustSpendAllMTokens(uint256 intentIdx);
         error SolutionValidator__ExactIntentNotSatisfied(uint256 intentIdx);
         error SolutionValidator__UnsupportedFillStructure(uint256 intentIdx);
@@ -154,7 +177,7 @@ sol! {
         error IntentBook__IntentAlreadyExists(bytes32 _intentId);
         error IntentBook__UnauthorizedIntentPublisher();
         error IntentBook__CannotLockIntentThatIsNotOpen(bytes32 intentId);
-        error IntentBook__CannotCancelNonOpenIntent();
+        error IntentBook__CannotCancelNonOpenIntent(IntentState intentState);
         error IntentBook__UnauthorizedCancellationAttempt();
         error IntentBook__InvalidSignature();
         error IntentBook__InvalidIntentAuthor();
@@ -183,6 +206,7 @@ sol! {
         error IntentIDMismatch();
         error InsufficientMTokens();
         error MissmatchedMToken();
+        error InvalidNonce();
 
         // ReceiptManager errors.
         error ReceiptNotFound();
@@ -191,21 +215,48 @@ sol! {
         error ReceiptAlreadyLocked();
         error ReceiptNotLocked();
         error UnauthorizedLockOperation();
+
+        // SolutionLib errors.
+        error SolutionLib__EmptyIntentsAndReceipts();
+        error SolutionLib__InputOutputMismatch(uint256 sumInput, uint256 sumIntentOutput, uint256 sumReceiptOutput);
+        error SolutionLib__SolutionMintsTokens();
+        error SolutionLib__InputOutputTokenTypeMismatch(address inputMToken, address outputMToken);
+        error SolutionLib__IntentAmountMismatch();
+        error SolutionLib__ReceiptAmountMismatch();
+        error SolutionLib__UnsupportedOutcomeStructure();
+        error SolutionLib__UnsupportedFillStructure();
+        error SolutionLib__InvalidFillGraphForEASIntent();
+        error SolutionLib__ExactAnySingleMustBeFulfilledWithReceipts(FillRecord fillRec);
+        error SolutionLib__MismatchBetweenInputAndOutputOwners();
+        error SolutionLib__InsufficientReceiptsToFillPASIntent(uint256 expectedReceiptTotal, uint256 actualReceiptTotal);
+        error SolutionLib__MinimumFillAmountNotSatisfied(uint256 minimumReceiptAmount, uint256 actualReceiptAmount);
+        error SolutionLib__AnySingleExactlyIntentMustHaveExactlyOneOutcomeToken();
+        error SolutionLib__AnySingleExactlyIntentMustHaveExactlyOneOutcomeTokenAmount();
+        error Teller__InvalidInitializationParameters();
+        error Teller__Paused();
+        error Teller__InvalidMedusaAddress();
+        error Teller__AssetNotSupported();
+        error Teller__ZeroAmount();
+        error Teller__CannotWithdrawAmount();
+        error Teller__MinimumDepositShareAmountNotMet();
+        error Teller__InsufficientSharesForWithdrawalFee();
+        error Teller__CannotRemoveSupportedAssetWithNonZeroBalance();
+        error Teller__DepositorDoesNotHaveEnoughShares(uint256 shares);
+        error Teller__InvalidFeePercentage(uint16 feePercentage);
+        error Teller__CannotWithdrawZeroShares();
+        error Teller__InvalidRate();
+        error MTokenVault__InsufficientBalance(address asset, uint256 balance);
+        error MTokenVault__CannotEnterZeroAmount();
+        error MTokenVault__CannotEnterWithoutMintingShares();
+        error MTokenVault__CannotExitZeroAmount();
+        error MTokenVault__CannotExitWithoutBurningShares();
     }
 
     #[sol(rpc)]
     contract IntentBook {
-        event IntentPublisherAdded(address indexed publisher);
-        event IntentPublisherRevoked(address indexed publisher);
         event IntentCreated(
             bytes32 indexed intentId,
-            address indexed author,
-            address indexed srcMToken,
-            uint256 srcAmount,
-            address[] mTokens,
-            uint256[] mAmounts,
-            OutcomeAssetStructure outcomeAssetStructure,
-            FillStructure fillStructure
+            Intent intent,
         );
         event IntentLocked(bytes32 indexed intentId);
         event IntentCancelled(bytes32 indexed intentId);
@@ -224,6 +275,42 @@ sol! {
     #[sol(rpc)]
     contract MTokenManager {
         function withdrawMToken(address from, address mToken, uint256 amount) external payable;
+        function fastWithdrawMToken(FastWithdrawalPermit calldata permit, bytes calldata userSignature) external;
+        function fastWithdrawMTokenWithWitness(FastWithdrawalPermit calldata permit, bytes calldata userSignature, string calldata witnessTypeString, bytes32 witness) external;
+        function getBalanceOfUser(address user, address mToken) external view returns (uint256);
+        function setVaultManager(address manager, bool isVaultManager) external;
+        function runMTokenVault(address manager, address rateProvider, string memory name, string memory symbol) external;
+        event MTokenVaultCreated(address indexed managerAddress, address indexed vaultAddress, address indexed tellerAddress);
+
+        mapping(bytes32 => bool) public signedWithdrawalPermits;
+    }
+
+    #[sol(rpc)]
+    contract Teller {
+        function deposit(address depositor, address asset, uint256 amount, uint256 minShares) external returns (uint256 shares);
+        function previewDeposit(address asset, uint256 amount) external view returns (uint256 shares);
+        function maximumWithdraw(address asset, uint256 shares, uint16 feePercentage) external view returns (uint256 amount);
+        function withdraw(uint256 shares, address depositor, address asset, uint256 minAmount, uint16 feePercentage) external;
+        function pause() external;
+        function unpause() external;
+        function owner() external view returns (address);
+        function getTotalShares() external view returns (uint256);
+        function getTotalAssetValue() external view returns (uint256);
+        function mtokenBalanceof(address mToken) external view returns (uint256);
+        function mtokenBalanceInIntent(address mToken) public view returns (uint256);
+        function getDepositorShares(address depositor) external view returns (uint256);
+        function getAllSupportedAssets() public view returns (address[] memory);
+        function addSupportedAsset(address asset) external;
+        function removeSupportedAsset(address asset) external;
+    }
+
+    #[sol(rpc)]
+    contract MToken {
+        function approve(address spender, uint256 amount) external returns (bool);
+        function allowance(address owner, address spender) external view returns (uint256);
+        function balanceOf(address account) external view returns (uint256);
+        function decimals() external view returns (uint8);
+
     }
 }
 
