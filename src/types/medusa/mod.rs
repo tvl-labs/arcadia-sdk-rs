@@ -7,3 +7,4 @@ pub mod refinement;
 pub mod rpc_payloads;
 pub mod sol_types;
 pub mod solution;
+pub mod ws;

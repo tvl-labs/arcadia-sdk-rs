@@ -4,14 +4,14 @@ use anyhow::Result;
 use jsonrpsee::http_client::{HttpClient, HttpClientBuilder};
 use jsonrpsee::proc_macros::rpc;
 
-use crate::types::rpc::intents::{Intent, IntentHistory, IntentId, IntentState, SignedIntent};
-use crate::types::rpc::refinement::RefinementStatus;
-use crate::types::rpc::rpc_payloads::{
+use crate::types::medusa::intents::{Intent, IntentHistory, IntentId, IntentState, SignedIntent};
+use crate::types::medusa::refinement::RefinementStatus;
+use crate::types::medusa::rpc_payloads::{
     SignedPayloadAddress, SignedPayloadIntentId, SignedVaultDepositPayload,
     SignedVaultWithdrawalPayload, SignedWithdrawalPayload,
 };
-use crate::types::rpc::sol_types::FastWithdrawalPermit;
-use crate::types::rpc::solution::SignedSolution;
+use crate::types::medusa::sol_types::FastWithdrawalPermit;
+use crate::types::medusa::solution::SignedSolution;
 
 #[rpc(client)]
 pub trait MedusaRpc {
@@ -139,7 +139,7 @@ pub trait MedusaRpc {
     async fn request_add_solver(&self, signed_address: SignedPayloadAddress) -> RpcResult<()>;
 }
 
-pub fn create_medusa_client(url: String) -> Result<HttpClient> {
+pub fn create_medusa_rpc_client(url: String) -> Result<HttpClient> {
     HttpClientBuilder::default()
         .build(url)
         .map_err(anyhow::Error::msg)
