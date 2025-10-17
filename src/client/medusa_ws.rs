@@ -62,8 +62,8 @@ impl MedusaWsClient {
                                 match serde_json::from_str(&raw_message) {
                                     Ok(message) => {
                                         if let Err(e) = broadcast_send.send(message).await {
-                                            tracing::error!("Failed to forward WS broadcast message: {}", e);
-                                            continue;
+                                            tracing::error!("Broadcast receiver dropped: {}, closing connection", e);
+                                            break;
                                         }
                                     },
                                     Err(e) => {
@@ -72,10 +72,22 @@ impl MedusaWsClient {
                                     }
                                 };
                             }
+                            Some(Ok(Message::Close(frame))) => {
+                                tracing::warn!("WS connection closed: {:?}", frame);
+                                break;
+                            }
+                            Some(Err(e)) => {
+                                tracing::error!("WebSocket error: {}", e);
+                                break;
+                            }
+                            None => {
+                                tracing::warn!("WS connection closed");
+                                break;
+                            }
                             _ => {}
                         }
                     }
-                    payload = payload_recv.recv() => {
+                    Some(payload) = payload_recv.recv() => {
                         match serde_json::to_string(&payload) {
                             Ok(payload) => {
                                 if let Err(e) = ws_write.send(Message::Text(payload.into())).await {
@@ -91,10 +103,13 @@ impl MedusaWsClient {
                     }
                     _ = close_recv.recv() => {
                         let _ = ws_write.close().await;
+                        break;
                     }
 
                 }
             }
+            let _ = ws_write.close().await;
+            tracing::info!("WS connection closed");
         });
         Ok(Self {
             broadcast_recv,
@@ -127,5 +142,8 @@ impl MedusaWsClient {
 impl Drop for MedusaWsClient {
     fn drop(&mut self) {
         let _ = self.close_send.try_send(());
+        if let Some(handle) = self.task_handle.take() {
+            handle.abort();
+        }
     }
 }
