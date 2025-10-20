@@ -11,7 +11,7 @@ use tokio_tungstenite::tungstenite::http::Request;
 use tokio_tungstenite::tungstenite::protocol::Message;
 use url::Url;
 
-use crate::types::medusa::ws::{WsBroadcastMessage, WsPayload};
+use crate::types::ws::{WsBroadcastMessage, WsPayload};
 pub struct MedusaWsClient {
     pub broadcast_recv: mpsc::Receiver<WsBroadcastMessage>,
     payload_send: mpsc::Sender<WsPayload>,

@@ -4,14 +4,14 @@ use anyhow::Result;
 use jsonrpsee::http_client::{HttpClient, HttpClientBuilder};
 use jsonrpsee::proc_macros::rpc;
 
-use crate::types::medusa::intents::{Intent, IntentHistory, IntentId, IntentState, SignedIntent};
-use crate::types::medusa::refinement::RefinementStatus;
-use crate::types::medusa::rpc_payloads::{
+use crate::types::intents::{Intent, IntentHistory, IntentId, IntentState, SignedIntent};
+use crate::types::refinement::RefinementStatus;
+use crate::types::rpc_payloads::{
     SignedPayloadAddress, SignedPayloadIntentId, SignedVaultDepositPayload,
     SignedVaultWithdrawalPayload, SignedWithdrawalPayload,
 };
-use crate::types::medusa::sol_types::FastWithdrawalPermit;
-use crate::types::medusa::solution::SignedSolution;
+use crate::types::sol_types::FastWithdrawalPermit;
+use crate::types::solution::SignedSolution;
 
 #[rpc(client)]
 pub trait MedusaRpc {

@@ -1,12 +1,12 @@
 use alloy::primitives::Address;
 use serde::{Deserialize, Serialize};
 
-use crate::types::medusa::intents::Intent;
-use crate::types::medusa::intents::IntentId;
-use crate::types::medusa::intents::IntentState;
-use crate::types::medusa::refinement::RefinementStatus;
-use crate::types::medusa::solution::SignedSolution;
-use crate::types::medusa::solution::Solution;
+use crate::types::intents::Intent;
+use crate::types::intents::IntentId;
+use crate::types::intents::IntentState;
+use crate::types::refinement::RefinementStatus;
+use crate::types::solution::SignedSolution;
+use crate::types::solution::Solution;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum WsPayload {

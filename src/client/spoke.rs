@@ -7,8 +7,8 @@ use alloy::providers::{Identity, ProviderBuilder, RootProvider};
 use alloy::signers::{Signature, Signer};
 
 use crate::error::Error;
-use crate::types::solidity::contract::AssetReserves::AssetReservesInstance;
-use crate::types::solidity::contract::ERC20::ERC20Instance;
+use crate::types::sol_types::AssetReserves::AssetReservesInstance;
+use crate::types::sol_types::ERC20::ERC20Instance;
 
 type EthereumProvider = FillProvider<
     JoinFill<

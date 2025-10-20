@@ -1,6 +1,3 @@
-use super::common::*;
-
-use super::events::{AssetReserveDeposit as RpcAssetReserveDeposit, XChainEvent as RpcXChainEvent};
 use super::intents::{
     FillStructure as RpcFillStructure, Intent as RpcIntent, IntentState as RpcIntentState,
     Outcome as RpcOutcome, OutcomeAssetStructure as RpcOutcomeAssetStructure,
@@ -43,30 +40,6 @@ pub trait ToSolution {
 
 pub mod rpc_to_sol {
     use super::*;
-    impl RpcToSol for RpcXChainEvent {
-        type SolType = XChainEvent;
-
-        fn convert_to_sol_type(&self) -> Self::SolType {
-            XChainEvent {
-                publisher: self.publisher,
-                eventHash: self.event_hash,
-                chainId: U256::from_le_bytes(self.chain_id.to_le_bytes()), // TODO: Check this works when, for example, the rpc type is
-                                                                           // abi encoded, since this will be big endian
-            }
-        }
-    }
-
-    impl RpcToSol for RpcAssetReserveDeposit {
-        type SolType = AssetReserveDeposit;
-
-        fn convert_to_sol_type(&self) -> Self::SolType {
-            AssetReserveDeposit {
-                token: self.token,
-                amount: self.amount,
-                depositor: self.depositor,
-            }
-        }
-    }
     impl RpcToSol for RpcOutcomeAssetStructure {
         type SolType = OutcomeAssetStructure;
 
@@ -253,30 +226,6 @@ pub mod rpc_to_sol {
 
 pub mod sol_to_rpc {
     use super::*;
-
-    impl SolToRpc for XChainEvent {
-        type RpcType = RpcXChainEvent;
-
-        fn convert_to_rpc_type(&self) -> Self::RpcType {
-            RpcXChainEvent {
-                publisher: self.publisher,
-                event_hash: self.eventHash,
-                chain_id: u64::from_be_bytes(self.chainId.to_be_bytes()),
-            }
-        }
-    }
-
-    impl SolToRpc for AssetReserveDeposit {
-        type RpcType = RpcAssetReserveDeposit;
-
-        fn convert_to_rpc_type(&self) -> Self::RpcType {
-            RpcAssetReserveDeposit {
-                token: self.token,
-                amount: self.amount,
-                depositor: self.depositor,
-            }
-        }
-    }
 
     impl SolToRpc for OutcomeAssetStructure {
         type RpcType = RpcOutcomeAssetStructure;

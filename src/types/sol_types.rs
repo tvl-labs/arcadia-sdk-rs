@@ -8,17 +8,6 @@ use super::intents::Intent as RpcIntent;
 use super::{intents, receipt, solution};
 
 sol! {
-    struct XChainEvent {
-        address publisher;
-        bytes32 eventHash;
-        uint256 chainId;
-    }
-
-    struct AssetReserveDeposit {
-        address token;
-        uint256 amount;
-        address depositor;
-    }
 
     enum OutcomeAssetStructure {
         AnySingle,
@@ -312,6 +301,31 @@ sol! {
         function decimals() external view returns (uint8);
 
     }
+
+    #[sol(rpc)]
+    contract ERC20 {
+        function allowance(address owner, address spender) external view returns (uint256);
+    }
+
+    #[sol(rpc)]
+    contract AssetReserves {
+        function withdrawWithPermit(
+            FastWithdrawalPermit calldata permit,
+            address receiver,
+            bytes calldata userSignature,
+            bytes calldata operatorSignature
+        ) external;
+
+        function withdrawWithPermitAndWitness(
+            FastWithdrawalPermit calldata permit,
+            address receiver,
+            bytes32 witness,
+            string calldata witnessTypeString,
+            bytes calldata userSignature,
+            bytes calldata operatorSignature
+        ) external;
+        function deposit(address token, uint256 amount, uint32 destChain) external payable;
+    }
 }
 
 impl From<solution::OutType> for OutType {
@@ -422,8 +436,6 @@ pub fn eip712_intent_hash(intent: &RpcIntent, intent_book: Address) -> B256 {
     intent.convert_to_sol_type().eip712_signing_hash(&domain)
 }
 
-impl SolidityType for XChainEvent {}
-impl SolidityType for AssetReserveDeposit {}
 impl SolidityType for OutcomeAssetStructure {}
 impl SolidityType for FillStructure {}
 impl SolidityType for Outcome {}
