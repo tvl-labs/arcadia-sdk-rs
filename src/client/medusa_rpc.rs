@@ -1,3 +1,5 @@
+pub use jsonrpsee::core::client::async_client::Client;
+
 use alloy::dyn_abi::TypedData;
 use alloy::primitives::{Address, B256, Bytes, U256};
 use anyhow::Result;
