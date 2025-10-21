@@ -1,9 +1,7 @@
-pub use jsonrpsee::core::client::async_client::Client;
-
 use alloy::dyn_abi::TypedData;
 use alloy::primitives::{Address, B256, Bytes, U256};
 use anyhow::Result;
-use jsonrpsee::http_client::{HttpClient, HttpClientBuilder};
+pub use jsonrpsee::http_client::{HttpClient, HttpClientBuilder};
 use jsonrpsee::proc_macros::rpc;
 
 use crate::types::intents::{Intent, IntentHistory, IntentId, IntentState, SignedIntent};
