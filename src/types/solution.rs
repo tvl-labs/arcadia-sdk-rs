@@ -1,6 +1,5 @@
 use alloy::primitives::{Address, Signature, U256, keccak256};
 use alloy::signers::Signer;
-use alloy::signers::local::PrivateKeySigner;
 use alloy::sol_types::SolValue;
 use serde::{Deserialize, Serialize};
 
@@ -58,7 +57,10 @@ pub struct Solution {
 }
 
 impl Solution {
-    pub async fn sign(&self, signer: &PrivateKeySigner) -> SignedSolution {
+    pub async fn sign<S>(&self, signer: &S) -> SignedSolution
+    where
+        S: Signer,
+    {
         let signature = signer
             .sign_hash(&keccak256(self.convert_to_sol_type().abi_encode()))
             .await
