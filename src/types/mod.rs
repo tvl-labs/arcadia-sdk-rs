@@ -1,4 +1,4 @@
-use alloy::primitives::{B256, Signature, U256};
+use alloy::primitives::U256;
 pub mod common;
 
 pub mod config;
@@ -46,11 +46,7 @@ mod tests {
 
     use crate::types::intents::IntentBuilder;
 
-    use super::{
-        FromSol, SolidityType, ToSol,
-        intents::{Intent, SignedIntent},
-        solidity::eip712_intent_hash,
-    };
+    use super::solidity::eip712_intent_hash;
 
     #[test]
     fn test_hash_intent() {

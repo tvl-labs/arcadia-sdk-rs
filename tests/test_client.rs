@@ -1,15 +1,11 @@
-use std::str::FromStr;
 use std::sync::Arc;
 
 use alloy::network::EthereumWallet;
-use alloy::primitives::{Address, B256, ChainId, U256, address};
-use alloy::providers::{Provider, ProviderBuilder, WalletProvider};
-use alloy::signers::local::{LocalSigner, PrivateKeySigner};
-use alloy::signers::{Signature, Signer};
-use arcadia_sdk::client::MedusaClient;
+use alloy::primitives::Address;
+use alloy::providers::{ProviderBuilder, WalletProvider as _};
+use alloy::signers::local::PrivateKeySigner;
 use arcadia_sdk::client::arcadia::ArcadiaClient;
 use arcadia_sdk::error::Error;
-use arcadia_sdk::types::intents::{Intent, SignedIntent};
 use std::env;
 
 #[tokio::test]
@@ -42,11 +38,11 @@ async fn test_get_intents_for_author() {
         .get_intents_for_author(intent_author)
         .await
         .unwrap();
-    println!("intent_ids: {:?}", intent_ids);
-    let has_intent_ids = intent_ids.len() > 0;
+    println!("intent_ids: {intent_ids:?}");
+    let has_intent_ids = !intent_ids.is_empty();
 
     let fake_addr = arcadia_client.provider.signer_addresses().next().unwrap();
-    eprintln!("fake addr: {:#?}", fake_addr);
+    eprintln!("fake addr: {fake_addr:#?}");
     assert!(has_intent_ids);
     let new_intent_ids = arcadia_client
         .get_intents_for_author(fake_addr)

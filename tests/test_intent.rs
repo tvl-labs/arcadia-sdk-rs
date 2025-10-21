@@ -1,16 +1,16 @@
-use alloy::primitives::{Address, U256, address};
+use alloy::primitives::U256;
+use arcadia_sdk::load_registry;
+use arcadia_sdk::types::base_precision;
 use arcadia_sdk::types::config::registry::arcadia_registry::ArcadiaChainRegistry;
-use arcadia_sdk::types::config::registry::{get_intent_mtokens_use_record, load_registry};
+use arcadia_sdk::types::config::registry::get_intent_mtokens_use_record;
 use arcadia_sdk::types::intents::Intent;
-use arcadia_sdk::types::{DEFAULT_PRECISION, base_precision};
 use std::ops::Mul;
 
 #[test]
 fn test_intent_from_json() {
     let intent_string = std::fs::read_to_string("tests/intent.json").unwrap();
     let mut intent: Intent = serde_json::from_str(&intent_string).unwrap();
-    let arcadia_registry: ArcadiaChainRegistry =
-        load_registry("tests/config/arcadia.json").unwrap();
+    let arcadia_registry: ArcadiaChainRegistry = load_registry!("config/arcadia.json").unwrap();
 
     let mtoken_entry = arcadia_registry
         .get_mtoken_entry_by_address(intent.src_m_token)

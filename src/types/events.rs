@@ -1,7 +1,6 @@
 use super::common::*;
 use super::solidity::{
-    AssetReserveDeposit as SolAssetReserveDeposit, MTokenWithdrawal as SolMTokenWithdrawal,
-    XChainEvent as SolXChainEvent,
+    AssetReserveDeposit as SolAssetReserveDeposit, XChainEvent as SolXChainEvent,
 };
 use super::{FromSol, ToSol};
 use serde::{Deserialize, Serialize};

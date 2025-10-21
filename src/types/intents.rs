@@ -1,13 +1,11 @@
 use alloy::primitives::{B256, Signature};
-use alloy::signers::Signer;
-use alloy::signers::local::PrivateKeySigner;
 use serde::{Deserialize, Serialize};
 use std::ops::{Div, Mul};
 
 use alloy::primitives::{Address, U256, keccak256};
 use alloy::sol_types::SolValue;
 
-use crate::types::{DEFAULT_PRECISION, FromSol, SolidityType, ToSol};
+use crate::types::{DEFAULT_PRECISION, FromSol, ToSol};
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone)]
 #[serde(rename = "OutcomeAssetStructure")]
@@ -78,6 +76,7 @@ impl From<FillStructure> for u8 {
     }
 }
 
+#[derive(Default, Clone, Debug)]
 pub struct IntentBuilder {
     pub author: Option<Address>,
     pub ttl: Option<U256>,
@@ -89,14 +88,7 @@ pub struct IntentBuilder {
 
 impl IntentBuilder {
     pub fn new() -> Self {
-        Self {
-            author: None,
-            ttl: None,
-            nonce: None,
-            src_m_token: None,
-            src_amount: None,
-            outcome: None,
-        }
+        Self::default()
     }
 
     pub fn author(mut self, author: Address) -> Self {
@@ -130,8 +122,8 @@ impl IntentBuilder {
     }
 
     pub fn outcome_with_token(mut self, token: Address, amount: U256) -> Self {
-        let prevOutcome = &mut self.outcome;
-        if let Some(outcome) = prevOutcome {
+        let prev_outcome = &mut self.outcome;
+        if let Some(outcome) = prev_outcome {
             outcome.m_tokens.push(token);
             outcome.m_amounts.push(amount);
         } else {
