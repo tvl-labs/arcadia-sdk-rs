@@ -10,6 +10,7 @@ alloy = { version = "1.0.38", features = [
     "signer-aws",
     "dyn-abi",
     "eip712",
+    "rand"
 ] }
 anyhow = "1.0.98"
 base64 = "0.22.0"
