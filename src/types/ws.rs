@@ -1,12 +1,15 @@
 use alloy::primitives::Address;
 use serde::{Deserialize, Serialize};
 
-use crate::types::intents::Intent;
 use crate::types::intents::IntentId;
 use crate::types::intents::IntentState;
+use crate::types::intents::{Intent, SignedIntent};
 use crate::types::refinement::RefinementStatus;
 use crate::types::solution::SignedSolution;
 use crate::types::solution::Solution;
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ComplementaryWithdrawal(pub bool);
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum WsPayload {
@@ -14,7 +17,7 @@ pub enum WsPayload {
     GetSolutionsForIntent(IntentId),
     GetSolutionsForSolver(Address),
     AddSolver(Address),
-    ProposeSolution(SignedSolution),
+    ProposeSolution(SignedSolution, Vec<SignedIntent>, ComplementaryWithdrawal),
     RequestOpenIntents,
 }
 

@@ -1,7 +1,6 @@
 use super::intents::{
-    FillStructure as RpcFillStructure, Intent as RpcIntent, IntentState as RpcIntentState,
-    Outcome as RpcOutcome, OutcomeAssetStructure as RpcOutcomeAssetStructure,
-    SignedIntent as RpcSignedIntent,
+    FillStructure as RpcFillStructure, Intent as RpcIntent, Outcome as RpcOutcome,
+    OutcomeAssetStructure as RpcOutcomeAssetStructure, SignedIntent as RpcSignedIntent,
 };
 use super::receipt::Receipt as RpcReceipt;
 use super::sol_types::*;
@@ -28,18 +27,18 @@ pub trait SolToRpc {
     fn convert_to_rpc_type(&self) -> Self::RpcType;
 }
 
-#[allow(dead_code)]
 pub trait ToIntent {
     fn to_intent(&self) -> RpcIntent;
 }
 
-#[allow(dead_code)]
 pub trait ToSolution {
     fn to_solution(&self) -> RpcSolution;
 }
 
 pub mod rpc_to_sol {
     use super::*;
+    use alloy::primitives::U256;
+
     impl RpcToSol for RpcOutcomeAssetStructure {
         type SolType = OutcomeAssetStructure;
 
@@ -84,8 +83,8 @@ pub mod rpc_to_sol {
         fn convert_to_sol_type(&self) -> Self::SolType {
             Intent {
                 author: self.author,
-                validBefore: self.valid_before,
-                validAfter: self.valid_after,
+                validBefore: U256::from(self.valid_before),
+                validAfter: U256::from(self.valid_after),
                 nonce: self.nonce,
                 srcMToken: self.src_m_token,
                 srcAmount: self.src_amount,
@@ -101,21 +100,6 @@ pub mod rpc_to_sol {
             SignedIntent {
                 intent: self.intent.convert_to_sol_type(),
                 signature: self.signature.clone(),
-            }
-        }
-    }
-
-    impl RpcToSol for RpcIntentState {
-        type SolType = IntentState;
-
-        fn convert_to_sol_type(&self) -> Self::SolType {
-            match self {
-                RpcIntentState::Open => IntentState::Open,
-                RpcIntentState::Solved => IntentState::Solved,
-                RpcIntentState::Expired => IntentState::Expired,
-                RpcIntentState::Cancelled => IntentState::Cancelled,
-                RpcIntentState::Error => IntentState::Error,
-                RpcIntentState::Locked => IntentState::Locked,
             }
         }
     }
@@ -218,7 +202,7 @@ pub mod rpc_to_sol {
         fn convert_to_sol_type(&self) -> Self::SolType {
             SignedSolution {
                 solution: self.solution.convert_to_sol_type(),
-                signature: self.signature.as_bytes().to_vec().into(),
+                signature: self.signature.clone(),
             }
         }
     }

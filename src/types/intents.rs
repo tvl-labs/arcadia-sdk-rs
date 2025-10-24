@@ -2,7 +2,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use alloy::primitives::{Address, Bytes, Signature, U256, keccak256};
 use alloy::sol_types::SolValue;
-use anyhow::Result;
+use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
 use serde_with::{TryFromInto, serde_as};
 
@@ -86,38 +86,38 @@ impl SignedIntent {
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[repr(u8)]
 pub enum IntentState {
+    // The NonExistent state doesn't really occur in the db or in RPC for now.
+    // Because non-existent intents are not stored in the DB.
+    NonExistent,
     Open,
     Solved,
-    Expired,
     Cancelled,
-    Error,
-    Locked,
+    Expired,
+    // This state only exists in the db/RPC, not in the contracts.
+    // Use 255 so that we can add other states before it without changing the numeric
+    // representation of this state.
+    Error = 255,
 }
 
 impl From<IntentState> for i16 {
     fn from(state: IntentState) -> Self {
-        match state {
-            IntentState::Open => 0,
-            IntentState::Solved => 1,
-            IntentState::Expired => 2,
-            IntentState::Cancelled => 3,
-            IntentState::Error => 4,
-            IntentState::Locked => 5, // a new number so we don't need to flush the db
-        }
+        state as i16
     }
 }
 
-impl From<u8> for IntentState {
-    fn from(state: u8) -> Self {
-        match state {
-            0 => IntentState::Open,
-            1 => IntentState::Solved,
-            2 => IntentState::Expired,
+impl TryFrom<i16> for IntentState {
+    type Error = anyhow::Error;
+
+    fn try_from(state: i16) -> Result<Self> {
+        Ok(match state {
+            0 => IntentState::NonExistent,
+            1 => IntentState::Open,
+            2 => IntentState::Solved,
             3 => IntentState::Cancelled,
-            4 => IntentState::Error,
-            5 => IntentState::Locked,
-            _ => panic!("Invalid intent state"),
-        }
+            4 => IntentState::Expired,
+            255 => IntentState::Error,
+            _ => bail!("Invalid intent state"),
+        })
     }
 }
 

@@ -1,4 +1,4 @@
-use alloy::primitives::{Address, Signature, U256, keccak256};
+use alloy::primitives::{Address, Bytes, Signature, U256, keccak256};
 use alloy::signers::Signer;
 use alloy::sol_types::SolValue;
 use serde::{Deserialize, Serialize};
@@ -64,7 +64,10 @@ impl Solution {
         let signature = signer
             .sign_hash(&keccak256(self.convert_to_sol_type().abi_encode()))
             .await
-            .unwrap();
+            .unwrap()
+            .as_bytes()
+            .to_vec()
+            .into();
         SignedSolution {
             solution: self.clone(),
             signature,
@@ -75,7 +78,7 @@ impl Solution {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SignedSolution {
     pub solution: Solution,
-    pub signature: Signature,
+    pub signature: Bytes,
 }
 
 impl SignedSolution {
@@ -83,9 +86,20 @@ impl SignedSolution {
         keccak256(self.solution.convert_to_sol_type().abi_encode())
     }
 
+    pub fn try_recover_address(&self) -> Option<Address> {
+        let hash = self.hash();
+        Signature::from_raw(&self.signature)
+            .ok()?
+            .recover_address_from_prehash(&hash)
+            .ok()
+    }
+
     pub fn recover_address(&self) -> Address {
         let hash = self.hash();
-        self.signature.recover_address_from_prehash(&hash).unwrap()
+        Signature::from_raw(&self.signature)
+            .unwrap()
+            .recover_address_from_prehash(&hash)
+            .unwrap()
     }
 }
 
