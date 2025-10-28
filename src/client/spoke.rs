@@ -4,7 +4,7 @@ use alloy::providers::fillers::{
     BlobGasFiller, ChainIdFiller, FillProvider, GasFiller, JoinFill, NonceFiller, WalletFiller,
 };
 use alloy::providers::{Identity, ProviderBuilder, RootProvider};
-use alloy::signers::{Signature, Signer};
+use alloy::signers::Signature;
 
 use crate::error::Error;
 use crate::types::sol_types::AssetReserves::AssetReservesInstance;
@@ -30,7 +30,7 @@ pub struct SpokeClient {
 impl SpokeClient {
     pub async fn new<S>(signer: S, url: String, asset_reserves_address: Address) -> Self
     where
-        S: Signer + TxSigner<Signature> + Send + Sync + 'static,
+        S: TxSigner<Signature> + Send + Sync + 'static,
     {
         let wallet = EthereumWallet::from(signer);
         let provider = ProviderBuilder::new()
