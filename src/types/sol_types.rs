@@ -459,7 +459,7 @@ impl FastWithdrawalPermit {
     ) -> Result<alloy::primitives::Bytes, alloy::signers::Error> {
         let domain = eip712_domain! {
             name: "FastWithdrawalPermit".to_string(),
-            version: "1.0.0".to_string(),
+            version: "1".to_string(),
             chain_id: chain_id,
             verifying_contract: mtoken_manager,
         };
