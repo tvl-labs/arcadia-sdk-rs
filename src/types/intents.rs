@@ -1,14 +1,14 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use alloy::primitives::{Address, Bytes, Signature, U256, keccak256};
-use alloy::sol_types::SolValue;
+use alloy::primitives::{Address, Bytes, U256};
+use alloy::sol_types::{SolStruct, eip712_domain};
 use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
 use serde_with::{TryFromInto, serde_as};
 
 use super::common::*;
 use super::conversion::*;
-use super::sol_types::eip712_intent_hash;
+
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone)]
 #[serde(rename = "OutcomeAssetStructure")]
 pub enum OutcomeAssetStructure {
@@ -83,6 +83,10 @@ impl SignedIntent {
     }
 }
 
+/// The intent state used in DB and RPC.
+///
+/// Note: if this is updated so that the numeric representation of variants change, state that is
+/// saved in db can be affected.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
 #[repr(u8)]
 pub enum IntentState {
@@ -131,7 +135,8 @@ impl RpcType for Outcome {}
 impl Intent {
     pub fn simple_swap(
         author: Address,
-        deadline: U256,
+        valid_before: U256,
+        valid_after: U256,
         nonce: Option<U256>,
         src_m_token: Address,
         src_amount: impl Into<U256> + Copy,
@@ -147,8 +152,8 @@ impl Intent {
         };
         Intent {
             author,
-            valid_before: deadline,
-            valid_after: U256::from(0),
+            valid_before,
+            valid_after,
             nonce,
             src_m_token,
             src_amount: src_amount.into(),
@@ -156,21 +161,32 @@ impl Intent {
         }
     }
 
-    pub async fn sign<S>(&self, signer: &S, intent_book: Address) -> SignedIntent
+    pub async fn sign<S>(&self, signer: &S, intent_book: Address, chain_id: u64) -> SignedIntent
     where
         S: alloy::signers::Signer,
     {
-        let hash = eip712_intent_hash(self, intent_book);
-        let sig = signer.sign_hash(&hash).await.unwrap();
+        let domain = eip712_domain!(
+            name: "KhalaniIntent",
+            version: "1.0.0",
+            chain_id: chain_id,
+            verifying_contract: intent_book,
+        );
+        let signing_hash = self.convert_to_sol_type().eip712_signing_hash(&domain);
+        let signature = signer
+            .sign_hash(&signing_hash)
+            .await
+            .unwrap()
+            .as_bytes()
+            .to_vec()
+            .into();
         SignedIntent {
             intent: self.clone(),
-            signature: sig.as_bytes().to_vec().into(),
+            signature,
         }
     }
 
     pub fn intent_hash(&self) -> B256 {
-        let sol_intent = self.convert_to_sol_type();
-        keccak256(sol_intent.abi_encode())
+        self.convert_to_sol_type().eip712_hash_struct()
     }
 
     pub fn intent_id(&self) -> B256 {
@@ -179,14 +195,6 @@ impl Intent {
 }
 
 pub type IntentId = B256;
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct SignedIntentId {
-    pub intent_id: IntentId,
-    pub signature: Signature,
-}
-
-pub type IntentUpdate = (IntentId, IntentState);
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize, PartialEq)]
 pub struct IntentHistory {
@@ -211,31 +219,31 @@ impl IntentHistory {
     pub fn update_field(&mut self, event: IntentEvent) -> Result<()> {
         match event {
             IntentEvent::Publish(tx_hash) => {
-                self.publish_timestamp = Some(current_timestamp());
+                self.publish_timestamp = Some(current_timestamp_sec());
                 self.publish_tx_hash = Some(tx_hash);
             }
             IntentEvent::Solve(tx_hash, remaining_intent_id) => {
-                self.solve_timestamp = Some(current_timestamp());
+                self.solve_timestamp = Some(current_timestamp_sec());
                 self.solve_tx_hash = Some(tx_hash);
                 self.remaining_intent_id = remaining_intent_id;
             }
             IntentEvent::Redeem(tx_hash) => {
-                self.redeem_timestamp = Some(current_timestamp());
+                self.redeem_timestamp = Some(current_timestamp_sec());
                 self.redeem_tx_hash = Some(tx_hash);
             }
             IntentEvent::Withdraw(tx_hash) => {
-                self.withdraw_timestamp = Some(current_timestamp());
+                self.withdraw_timestamp = Some(current_timestamp_sec());
                 self.withdraw_tx_hash = Some(tx_hash);
             }
             IntentEvent::WithdrawReachSpoke() => {
-                self.withdraw_to_spoke_timestamp = Some(current_timestamp());
+                self.withdraw_to_spoke_timestamp = Some(current_timestamp_sec());
             }
             IntentEvent::Cancel(tx_hash) => {
-                self.cancel_timestamp = Some(current_timestamp());
+                self.cancel_timestamp = Some(current_timestamp_sec());
                 self.cancel_tx_hash = Some(tx_hash);
             }
             IntentEvent::Error(error_type, tx_hash) => {
-                self.error_timestamp = Some(current_timestamp());
+                self.error_timestamp = Some(current_timestamp_sec());
                 self.error_tx_hash = Some(tx_hash);
                 self.error_type = Some(error_type);
             }
@@ -278,9 +286,16 @@ impl From<u8> for IntentErrorType {
     }
 }
 
-fn current_timestamp() -> u64 {
+pub fn current_timestamp_sec() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_secs()
+}
+
+pub fn current_timestamp_ms() -> u128 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_millis()
 }

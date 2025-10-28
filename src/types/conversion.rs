@@ -1,3 +1,4 @@
+use super::common::*;
 use super::intents::{
     FillStructure as RpcFillStructure, Intent as RpcIntent, Outcome as RpcOutcome,
     OutcomeAssetStructure as RpcOutcomeAssetStructure, SignedIntent as RpcSignedIntent,
@@ -9,10 +10,8 @@ use super::solution::{
     OutputIdx as RpcOutputIdx, SignedSolution as RpcSignedSolution, Solution as RpcSolution,
 };
 
-#[allow(dead_code)]
 pub trait RpcType {}
 
-#[allow(dead_code)]
 pub trait SolidityType {}
 
 pub trait RpcToSol {
@@ -37,8 +36,6 @@ pub trait ToSolution {
 
 pub mod rpc_to_sol {
     use super::*;
-    use alloy::primitives::U256;
-
     impl RpcToSol for RpcOutcomeAssetStructure {
         type SolType = OutcomeAssetStructure;
 
