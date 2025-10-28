@@ -1,7 +1,7 @@
 use alloy::primitives::Address;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct Token {
     pub spoke_address: Address,
     pub mtoken_address: Address,
