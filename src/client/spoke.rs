@@ -11,7 +11,7 @@ use crate::types::sol_types::AssetReserves::AssetReservesInstance;
 use crate::types::sol_types::ERC20::ERC20Instance;
 use crate::types::sol_types::FastWithdrawalPermit;
 
-type EthereumProvider = FillProvider<
+pub type EthereumProvider = FillProvider<
     JoinFill<
         JoinFill<
             Identity,
