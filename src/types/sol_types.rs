@@ -44,6 +44,20 @@ sol! {
         bytes signature;
     }
 
+    #[derive(Debug, Serialize, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct CrossChainIntent {
+        address author;
+        uint256 validBefore;
+        uint256 nonce;
+        address srcMToken;
+        uint256 srcAmount;
+        uint32 destinationChainId;
+        uint256 nativeOutcome;
+        address outcomeToken;
+        uint256 outcomeAmount;
+    }
+
     #[derive(Debug)]
     enum IntentState {
         NonExistent,

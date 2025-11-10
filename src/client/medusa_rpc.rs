@@ -7,13 +7,13 @@ use jsonrpsee::proc_macros::rpc;
 use crate::types::intents::{Intent, IntentHistory, IntentId, IntentState, SignedIntent};
 use crate::types::refinement::RefinementStatus;
 use crate::types::rpc_payloads::{
-    SignedPayloadAddress, SignedPayloadIntentId, SignedVaultDepositPayload,
-    SignedVaultWithdrawalPayload, SignedWithdrawalPayload,
+    SignedAddSolver, SignedCancelIntent, SignedVaultDeposit, SignedVaultWithdraw, SignedWithdraw,
 };
-use crate::types::sol_types::FastWithdrawalPermit;
+use crate::types::sol_types::{CrossChainIntent, FastWithdrawalPermit};
 use crate::types::solution::SignedSolution;
 
 #[rpc(client)]
+
 pub trait MedusaRpc {
     #[method(name = "getDepositorVaultShares")]
     async fn get_depositor_vault_shares(
@@ -37,7 +37,7 @@ pub trait MedusaRpc {
     ) -> RpcResult<U256>;
 
     #[method(name = "depositToVault")]
-    async fn deposit_to_vault(&self, payload: SignedVaultDepositPayload) -> RpcResult<B256>;
+    async fn deposit_to_vault(&self, payload: SignedVaultDeposit) -> RpcResult<B256>;
 
     #[method(name = "previewMaximumWithdrawFromVault")]
     async fn preview_maximum_withdraw_from_vault(
@@ -49,10 +49,7 @@ pub trait MedusaRpc {
     ) -> RpcResult<U256>;
 
     #[method(name = "withdrawFromVault")]
-    async fn withdraw_from_vault(&self, payload: SignedVaultWithdrawalPayload) -> RpcResult<B256>;
-
-    #[method(name = "computeIntentId")]
-    fn compute_intent_id(&self, intent: Intent) -> RpcResult<IntentId>;
+    async fn withdraw_from_vault(&self, payload: SignedVaultWithdraw) -> RpcResult<B256>;
 
     #[method(name = "getMtokenBalanceByAuthor")]
     async fn get_mtoken_balance_by_author(
@@ -104,13 +101,13 @@ pub trait MedusaRpc {
     async fn query_refinement(&self, intent_id: IntentId) -> RpcResult<Option<RefinementStatus>>;
 
     #[method(name = "cancelIntent")]
-    async fn cancel_intent(&self, signed_intent_id: SignedPayloadIntentId) -> RpcResult<B256>;
+    async fn cancel_intent(&self, payload: SignedCancelIntent) -> RpcResult<B256>;
 
     #[method(name = "getHistory")]
     async fn get_history_for_intent(&self, intent_id: B256) -> RpcResult<(IntentHistory, Intent)>;
 
     #[method(name = "withdrawMtokens")]
-    async fn withdraw_mtokens(&self, signed_payload: SignedWithdrawalPayload) -> RpcResult<B256>;
+    async fn withdraw_mtokens(&self, payload: SignedWithdraw) -> RpcResult<B256>;
 
     #[method(name = "fastWithdrawMTokenWithWitness")]
     async fn fast_withdraw_mtokens_with_witness(
@@ -136,7 +133,14 @@ pub trait MedusaRpc {
     async fn get_nonce(&self, user: Address) -> RpcResult<U256>;
 
     #[method(name = "requestAddSolver")]
-    async fn request_add_solver(&self, signed_address: SignedPayloadAddress) -> RpcResult<()>;
+    async fn request_add_solver(&self, payload: SignedAddSolver) -> RpcResult<()>;
+
+    #[method(name = "publishCrossChainIntent")]
+    async fn publish_cross_chain_intent(
+        &self,
+        intent: CrossChainIntent,
+        signature: Bytes,
+    ) -> RpcResult<B256>;
 }
 
 pub fn create_medusa_rpc_client(url: String) -> Result<HttpClient> {

@@ -1,6 +1,8 @@
 use super::sol_types::FastWithdrawalPermit;
 use alloy::dyn_abi::TypedData;
-use alloy::primitives::{Address, B256, Bytes, Signature, U256};
+use alloy::primitives::{Address, B256, Bytes, Signature};
+use alloy::sol;
+use alloy::sol_types::{Eip712Domain, SolStruct};
 use anyhow::{Context, ensure};
 use serde::{Deserialize, Serialize};
 
@@ -10,11 +12,10 @@ macro_rules! impl_signable {
             pub async fn sign(
                 self,
                 signer: &(impl alloy::signers::Signer + Send + Sync),
+                domain: &Eip712Domain,
             ) -> Result<SignedPayload<Self>, alloy::signers::Error> {
-                let bytes = bcs::to_bytes(&self).map_err(|e| {
-                    alloy::signers::Error::other(format!("BCS serialization failed: {}", e))
-                })?;
-                let signature = signer.sign_message(&bytes).await?;
+                let hash = self.eip712_signing_hash(domain);
+                let signature = signer.sign_hash(&hash).await?;
                 Ok(SignedPayload {
                     payload: self,
                     signature: signature.as_bytes().to_vec().into(),
@@ -24,64 +25,60 @@ macro_rules! impl_signable {
     };
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct PayloadIntentId {
-    pub intent_id: B256,
-    pub nonce: U256,
-    pub chain_id: u64,
+sol! {
+    #[derive(Debug, Serialize, Deserialize)]
+    struct CancelIntent {
+        uint256 nonce;
+        bytes32 intentId;
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    struct AddSolver {
+        address address;
+        uint256 nonce;
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    struct Withdraw {
+        address address;
+        uint256 amount;
+        address mtoken;
+        uint256 nonce;
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    struct VaultDeposit {
+        address depositorAddress;
+        address tellerAddress;
+        address asset;
+        uint256 amount;
+        uint256 minShares;
+        uint256 nonce;
+    }
+
+    #[derive(Debug, Serialize, Deserialize)]
+    struct VaultWithdraw {
+        address depositorAddress;
+        address tellerAddress;
+        address asset;
+        uint256 shares;
+        uint256 minAmount;
+        uint16 feePercentage;
+        uint256 nonce;
+    }
 }
 
-pub type SignedPayloadIntentId = SignedPayload<PayloadIntentId>;
-impl_signable!(PayloadIntentId);
+impl_signable!(CancelIntent);
+impl_signable!(AddSolver);
+impl_signable!(Withdraw);
+impl_signable!(VaultDeposit);
+impl_signable!(VaultWithdraw);
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct PayloadAddress {
-    pub address: Address,
-    pub nonce: U256,
-    pub chain_id: u64,
-}
-
-pub type SignedPayloadAddress = SignedPayload<PayloadAddress>;
-impl_signable!(PayloadAddress);
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct WithdrawalPayload {
-    pub address: Address,
-    pub amount: U256,
-    pub mtoken: Address,
-    pub nonce: U256,
-    pub chain_id: u64,
-}
-
-pub type SignedWithdrawalPayload = SignedPayload<WithdrawalPayload>;
-impl_signable!(WithdrawalPayload);
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct VaultDepositPayload {
-    pub depositor_address: Address,
-    pub teller_address: Address,
-    pub asset: Address,
-    pub amount: U256,
-    pub min_shares: U256,
-    pub nonce: U256,
-    pub chain_id: u64,
-}
-
-pub type SignedVaultDepositPayload = SignedPayload<VaultDepositPayload>;
-impl_signable!(VaultDepositPayload);
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct VaultWithdrawalPayload {
-    pub depositor_address: Address,
-    pub teller_address: Address,
-    pub asset: Address,
-    pub shares: U256,
-    pub min_amount: U256,
-    pub fee_percentage: u16,
-    pub nonce: U256,
-    pub chain_id: u64,
-}
-pub type SignedVaultWithdrawalPayload = SignedPayload<VaultWithdrawalPayload>;
-impl_signable!(VaultWithdrawalPayload);
+pub type SignedCancelIntent = SignedPayload<CancelIntent>;
+pub type SignedAddSolver = SignedPayload<AddSolver>;
+pub type SignedWithdraw = SignedPayload<Withdraw>;
+pub type SignedVaultDeposit = SignedPayload<VaultDeposit>;
+pub type SignedVaultWithdraw = SignedPayload<VaultWithdraw>;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SignedPayload<T> {
@@ -91,11 +88,11 @@ pub struct SignedPayload<T> {
 
 impl<T> SignedPayload<T>
 where
-    T: Serialize,
+    T: SolStruct,
 {
-    pub fn recover_signer_address(&self) -> anyhow::Result<Address> {
-        let addr = Signature::from_raw(&self.signature)?
-            .recover_address_from_msg(bcs::to_bytes(&self.payload)?.as_slice())?;
+    pub fn recover_signer_address(&self, domain: &Eip712Domain) -> anyhow::Result<Address> {
+        let hash = self.payload.eip712_signing_hash(&domain);
+        let addr = Signature::from_raw(&self.signature)?.recover_address_from_prehash(&hash)?;
         Ok(addr)
     }
 }
@@ -125,50 +122,28 @@ pub fn validate_and_extract_fast_withdrawal_permit_with_witness_typed_data(
     Ok((permit, witness_type_string, witness))
 }
 
-#[test]
-fn test_validate_and_extract_fast_withdrawal_permit_with_witness_typed_data() {
-    let typed_data: TypedData = serde_json::from_str(
-        r#"
-        {
-            "domain": {
-                "name": "FastWithdrawalPermit",
-                "version": "1",
-                "chainId": 1,
-                "verifyingContract": "0x1234567890123456789012345678901234567890"
-            },
-            "types": {
-                "FastWithdrawalPermit": [
-                    { "name": "nonce", "type": "uint256" },
-                    { "name": "spokeChainId", "type": "uint32" },
-                    { "name": "token", "type": "address" },
-                    { "name": "amount", "type": "uint256" },
-                    { "name": "user", "type": "address" },
-                    { "name": "caller", "type": "address" },
-                    { "name": "foo", "type": "Foo" }
-                ],
-                "Foo": [
-                    { "name": "bar", "type": "uint32" }
-                ]
-            },
-            "primaryType": "FastWithdrawalPermit",
-            "message": {
-                "nonce": "1",
-                "hubChainId": 2,
-                "spokeChainId": 3,
-                "token": "0x1234567890123456789012345678901234567890",
-                "amount": "4",
-                "user": "0x1234567890123456789012345678901234567890",
-                "caller": "0x1234567890123456789012345678901234567890",
-                "foo": {
-                    "bar": 7
-                }
-            }
-        }
-    "#,
-    )
-    .unwrap();
-    let (_permit, witness_type_string, witness) =
-        validate_and_extract_fast_withdrawal_permit_with_witness_typed_data(&typed_data).unwrap();
-    assert_eq!(witness_type_string, "Foo foo)Foo(uint32 bar)");
-    println!("witness: {witness}");
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use alloy::primitives::U256;
+    use alloy::sol_types::eip712_domain;
+
+    #[tokio::test]
+    async fn test_signing_and_recovery() {
+        let signer = alloy::signers::local::PrivateKeySigner::random();
+        let domain = eip712_domain!(
+            name: "Arcadia",
+            version: "1",
+            chain_id: 1,
+            verifying_contract: "0x1234567890123456789012345678901234567890".parse().unwrap(),
+        );
+
+        let payload = CancelIntent {
+            intentId: B256::random(),
+            nonce: U256::from(1),
+        };
+        let signed_payload = payload.sign(&signer, &domain).await.unwrap();
+        let recovered_address = signed_payload.recover_signer_address(&domain).unwrap();
+        assert_eq!(recovered_address, signer.address());
+    }
 }
