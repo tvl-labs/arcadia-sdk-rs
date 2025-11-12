@@ -15,6 +15,13 @@ use crate::types::solution::SignedSolution;
 #[rpc(client)]
 
 pub trait MedusaRpc {
+    #[method(name = "getMTokenBalanceInVault")]
+    async fn get_mtoken_balance_in_vault(
+        &self,
+        teller_address: Address,
+        mtoken_address: Address,
+    ) -> RpcResult<U256>;
+
     #[method(name = "getDepositorVaultShares")]
     async fn get_depositor_vault_shares(
         &self,
