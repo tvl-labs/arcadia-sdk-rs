@@ -1,10 +1,13 @@
 use alloy::network::{EthereumWallet, TxSigner};
 use alloy::primitives::{Address, B256, Bytes, ChainId, U256};
+use alloy::providers::Provider;
 use alloy::providers::fillers::{
     BlobGasFiller, ChainIdFiller, FillProvider, GasFiller, JoinFill, NonceFiller, WalletFiller,
 };
 use alloy::providers::{Identity, ProviderBuilder, RootProvider};
 use alloy::signers::Signature;
+
+use anyhow::Result;
 
 use crate::error::Error;
 use crate::types::sol_types::AssetReserves::AssetReservesInstance;
@@ -90,5 +93,16 @@ impl SpokeClient {
             .get_receipt()
             .await?;
         Ok(receipt.transaction_hash)
+    }
+
+    pub async fn get_erc20_balance(&self, owner: Address, token: Address) -> Result<U256> {
+        let erc20_contract = ERC20Instance::new(token, self.provider.clone());
+        let balance = erc20_contract.balanceOf(owner).call().await?;
+        Ok(balance)
+    }
+
+    pub async fn get_native_token_balance(&self, owner: Address) -> Result<U256> {
+        let balance = self.provider.get_balance(owner).await?;
+        Ok(balance)
     }
 }
