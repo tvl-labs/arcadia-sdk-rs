@@ -62,7 +62,13 @@ impl SpokeClient {
             .await?;
 
         if allowance_amount < amount {
-            return Err(Error::InsufficientAllowance(allowance_amount, amount));
+            match self
+                .erc20_approve(token, self.asset_reserves_address, amount)
+                .await
+            {
+                Ok(_) => {}
+                Err(_) => return Err(Error::InsufficientAllowance(allowance_amount, amount)),
+            }
         }
 
         let asset_reserves_contract =
@@ -99,6 +105,22 @@ impl SpokeClient {
         let erc20_contract = ERC20Instance::new(token, self.provider.clone());
         let balance = erc20_contract.balanceOf(owner).call().await?;
         Ok(balance)
+    }
+
+    pub async fn erc20_approve(
+        &self,
+        token: Address,
+        spender: Address,
+        amount: U256,
+    ) -> Result<B256> {
+        let erc20_contract = ERC20Instance::new(token, self.provider.clone());
+        let receipt = erc20_contract
+            .approve(spender, amount)
+            .send()
+            .await?
+            .get_receipt()
+            .await?;
+        Ok(receipt.transaction_hash)
     }
 
     pub async fn get_native_token_balance(&self, owner: Address) -> Result<U256> {
