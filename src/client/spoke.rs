@@ -1,10 +1,10 @@
 use alloy::network::{EthereumWallet, TxSigner};
-use alloy::primitives::{Address, B256, Bytes, ChainId, U256};
-use alloy::providers::Provider;
+use alloy::primitives::{Address, B256, Bytes, U256};
 use alloy::providers::fillers::{
     BlobGasFiller, ChainIdFiller, FillProvider, GasFiller, JoinFill, NonceFiller, WalletFiller,
 };
 use alloy::providers::{Identity, ProviderBuilder, RootProvider};
+use alloy::providers::{Provider, WalletProvider};
 use alloy::signers::Signature;
 
 use anyhow::Result;
@@ -48,14 +48,13 @@ impl SpokeClient {
         }
     }
 
-    pub async fn deposit(
+    pub async fn deposit_to_asset_reserves(
         &self,
-        owner: Address,
         token: Address,
         amount: U256,
-        dest_chain: ChainId,
     ) -> Result<B256, Error> {
         let allowance_contract = ERC20Instance::new(token, self.provider.clone());
+        let owner = self.provider.wallet().default_signer().address();
         let allowance_amount = allowance_contract
             .allowance(owner, self.asset_reserves_address)
             .call()
@@ -74,7 +73,7 @@ impl SpokeClient {
         let asset_reserves_contract =
             AssetReservesInstance::new(self.asset_reserves_address, self.provider.clone());
         let receipt = asset_reserves_contract
-            .deposit(token, amount, dest_chain as u32)
+            .deposit(token, amount)
             .send()
             .await?
             .get_receipt()

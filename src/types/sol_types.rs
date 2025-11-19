@@ -341,7 +341,7 @@ sol! {
             bytes calldata userSignature,
             bytes calldata operatorSignature
         ) external;
-        function deposit(address token, uint256 amount, uint32 destChain) external payable;
+        function deposit(address token, uint256 amount) external payable;
     }
 }
 
