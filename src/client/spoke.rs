@@ -74,6 +74,7 @@ impl SpokeClient {
             AssetReservesInstance::new(self.asset_reserves_address, self.provider.clone());
         let receipt = asset_reserves_contract
             .deposit(token, amount)
+            .value(U256::from(5_000_000_u64)) // TODO: dynamic gas fee
             .send()
             .await?
             .get_receipt()
