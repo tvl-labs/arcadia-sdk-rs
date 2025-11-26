@@ -10,7 +10,7 @@ alloy = { version = "1.0.38", features = [
     "signer-aws",
     "dyn-abi",
     "eip712",
-    "rand"
+    "rand",
 ] }
 anyhow = "1.0.98"
 base64 = "0.22.0"
@@ -26,6 +26,6 @@ serde_json = "1"
 serde_with = "3.14.0"
 thiserror = "2.0.12"
 tokio = { version = "1.41.1", features = ["full"] }
-tokio-tungstenite = "0.28.0"
+tokio-tungstenite = { version = "0.28.0", features = ["native-tls"] }
 tracing = "0.1.39"
 url = "2.5.2"
