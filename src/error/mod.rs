@@ -6,8 +6,6 @@ pub enum Error {
     #[error(transparent)]
     SignerError(#[from] SignerError),
     #[error(transparent)]
-    ReqwestError(#[from] reqwest::Error),
-    #[error(transparent)]
     SerdeJsonError(#[from] serde_json::Error),
     #[error(transparent)]
     ContractError(#[from] alloy::contract::Error),

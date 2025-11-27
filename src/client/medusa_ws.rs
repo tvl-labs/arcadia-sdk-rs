@@ -1,15 +1,10 @@
 use alloy::primitives::Address;
-use anyhow::{Context, Result};
-use base64::Engine as _;
-use base64::engine::general_purpose::STANDARD;
+use anyhow::Result;
 use futures::{SinkExt, StreamExt};
-use rand::RngCore;
 use tokio::sync::mpsc;
 use tokio::task::JoinHandle;
 use tokio_tungstenite::connect_async;
-use tokio_tungstenite::tungstenite::http::Request;
 use tokio_tungstenite::tungstenite::protocol::Message;
-use url::Url;
 
 use crate::types::ws::{WsBroadcastMessage, WsPayload};
 
@@ -30,28 +25,8 @@ pub async fn create_medusa_ws_client(
     mpsc::Sender<()>,
     JoinHandle<()>,
 )> {
-    let url = Url::parse(&url).context("Failed to parse websocket URL")?;
-    let host = url.host_str().context("Url must have a host")?;
-    let port = url
-        .port_or_known_default()
-        .context("Url must have a port")?;
-
-    let mut random_bytes = [0u8; 16];
-    rand::rng().fill_bytes(&mut random_bytes);
-    let key = STANDARD.encode(random_bytes);
-    let request = Request::builder()
-        .uri(url.as_str())
-        .header("Host", format!("{}:{}", host, port))
-        .header("Upgrade", "websocket")
-        .header("Connection", "Upgrade")
-        .header("Sec-WebSocket-Version", "13")
-        .header("Sec-WebSocket-Key", key)
-        .body(())
-        .context("Failed to build WS request")?;
-
-    let (ws_stream, _) = connect_async(request).await?;
-    let (mut ws_write, mut ws_read) = ws_stream.split();
-    ws_write
+    let (mut ws_stream, _) = connect_async(url).await?;
+    ws_stream
         .send(Message::Text(
             serde_json::to_string(&WsPayload::AddSolver(signer_address))?.into(),
         ))
@@ -64,7 +39,7 @@ pub async fn create_medusa_ws_client(
     let task_handle = tokio::spawn(async move {
         loop {
             tokio::select! {
-                msg = ws_read.next() => {
+                msg = ws_stream.next() => {
                     match msg {
                         Some(Ok(Message::Text(raw_message))) => {
                             let raw_message = raw_message.replace("\\\"", "\"").replace("\\'", "'");
@@ -99,7 +74,7 @@ pub async fn create_medusa_ws_client(
                 Some(payload) = payload_recv.recv() => {
                     match serde_json::to_string(&payload) {
                         Ok(payload) => {
-                            if let Err(e) = ws_write.send(Message::Text(payload.into())).await {
+                            if let Err(e) = ws_stream.send(Message::Text(payload.into())).await {
                                 tracing::error!("Failed to send WS payload to medusa: {}", e);
                                 continue;
                             }
@@ -111,13 +86,12 @@ pub async fn create_medusa_ws_client(
                     }
                 }
                 _ = close_recv.recv() => {
-                    let _ = ws_write.close().await;
                     break;
                 }
 
             }
         }
-        let _ = ws_write.close().await;
+        let _ = ws_stream.close(None).await;
         tracing::info!("WS connection closed");
     });
     Ok((broadcast_recv, payload_send, close_send, task_handle))
