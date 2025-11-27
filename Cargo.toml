@@ -5,7 +5,7 @@ edition = "2024"
 
 [features]
 ws-native-tls = ["tokio-tungstenite/native-tls"]
-ws-rustls = ["tokio-tungstenite/rustls"]
+ws-rustls = ["tokio-tungstenite/rustls", "tokio-tungstenite/rustls-tls-native-roots"]
 
 [dependencies]
 alloy = { version = "1.0.38", features = [
