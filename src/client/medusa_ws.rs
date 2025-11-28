@@ -42,7 +42,6 @@ pub async fn create_medusa_ws_client(
                 msg = ws_stream.next() => {
                     match msg {
                         Some(Ok(Message::Text(raw_message))) => {
-                            let raw_message = raw_message.replace("\\\"", "\"").replace("\\'", "'");
                             match serde_json::from_str(&raw_message) {
                                 Ok(message) => {
                                     if let Err(e) = broadcast_send.send(message).await {
@@ -55,6 +54,12 @@ pub async fn create_medusa_ws_client(
                                     continue;
                                 }
                             };
+                        }
+                        Some(Ok(Message::Ping(ping))) => {
+                            if let Err(e) = ws_stream.send(Message::Pong(ping)).await {
+                                tracing::error!("Failed to send Pong message: {}", e);
+                                break;
+                            }
                         }
                         Some(Ok(Message::Close(frame))) => {
                             tracing::warn!("WS connection closed: {:?}", frame);
