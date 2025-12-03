@@ -5,6 +5,7 @@ use crate::types::intents::IntentId;
 use crate::types::intents::IntentState;
 use crate::types::intents::{Intent, SignedIntent};
 use crate::types::refinement::RefinementStatus;
+use crate::types::rpc_payloads::SignedAddSolver;
 use crate::types::solution::SignedSolution;
 use crate::types::solution::Solution;
 
@@ -16,7 +17,7 @@ pub enum WsPayload {
     IntentRefinement(IntentId, RefinementStatus),
     GetSolutionsForIntent(IntentId),
     GetSolutionsForSolver(Address),
-    AddSolver(Address),
+    AddSolver(SignedAddSolver),
     ProposeSolution(SignedSolution, Vec<SignedIntent>, ComplementaryWithdrawal),
     RequestOpenIntents,
 }

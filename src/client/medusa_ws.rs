@@ -1,4 +1,3 @@
-use alloy::primitives::Address;
 use anyhow::Result;
 use futures::{SinkExt, StreamExt};
 use tokio::sync::mpsc;
@@ -6,6 +5,7 @@ use tokio::task::JoinHandle;
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::protocol::Message;
 
+use crate::types::rpc_payloads::SignedAddSolver;
 use crate::types::ws::{WsBroadcastMessage, WsPayload};
 
 /// Connects to Medusa WebSocket and spawns a task to handle messages
@@ -18,7 +18,7 @@ use crate::types::ws::{WsBroadcastMessage, WsPayload};
 /// - `task_handle`: JoinHandle for the background task
 pub async fn create_medusa_ws_client(
     url: String,
-    signer_address: Address,
+    signed_add_solver: SignedAddSolver,
 ) -> Result<(
     mpsc::Receiver<WsBroadcastMessage>,
     mpsc::Sender<WsPayload>,
@@ -28,7 +28,7 @@ pub async fn create_medusa_ws_client(
     let (mut ws_stream, _) = connect_async(url).await?;
     ws_stream
         .send(Message::Text(
-            serde_json::to_string(&WsPayload::AddSolver(signer_address))?.into(),
+            serde_json::to_string(&WsPayload::AddSolver(signed_add_solver))?.into(),
         ))
         .await?;
 
