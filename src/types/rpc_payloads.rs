@@ -1,6 +1,6 @@
 use super::sol_types::FastWithdrawalPermit;
 use alloy::dyn_abi::TypedData;
-use alloy::primitives::{Address, B256, Bytes, Signature};
+use alloy::primitives::{Address, B256, Bytes, Signature, U256};
 use alloy::sol;
 use alloy::sol_types::{Eip712Domain, SolStruct};
 use anyhow::{Context, ensure};
@@ -79,6 +79,12 @@ pub type SignedAddSolver = SignedPayload<AddSolver>;
 pub type SignedWithdraw = SignedPayload<Withdraw>;
 pub type SignedVaultDeposit = SignedPayload<VaultDeposit>;
 pub type SignedVaultWithdraw = SignedPayload<VaultWithdraw>;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MaximumWithdrawPreview {
+    pub min_shares: U256,
+    pub amount: U256,
+}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SignedPayload<T> {

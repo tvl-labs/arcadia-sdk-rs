@@ -7,7 +7,8 @@ use jsonrpsee::proc_macros::rpc;
 use crate::types::intents::{Intent, IntentHistory, IntentId, IntentState, SignedIntent};
 use crate::types::refinement::RefinementStatus;
 use crate::types::rpc_payloads::{
-    SignedAddSolver, SignedCancelIntent, SignedVaultDeposit, SignedVaultWithdraw, SignedWithdraw,
+    MaximumWithdrawPreview, SignedAddSolver, SignedCancelIntent, SignedVaultDeposit,
+    SignedVaultWithdraw, SignedWithdraw,
 };
 use crate::types::sol_types::{CrossChainIntent, FastWithdrawalPermit};
 use crate::types::solution::SignedSolution;
@@ -53,7 +54,7 @@ pub trait MedusaRpc {
         asset: Address,
         shares: U256,
         fee_percentage: u16,
-    ) -> RpcResult<U256>;
+    ) -> RpcResult<MaximumWithdrawPreview>;
 
     #[method(name = "withdrawFromVault")]
     async fn withdraw_from_vault(&self, payload: SignedVaultWithdraw) -> RpcResult<B256>;
