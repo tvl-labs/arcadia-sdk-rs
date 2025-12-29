@@ -155,6 +155,7 @@ pub trait MedusaRpc {
 
 pub fn create_medusa_rpc_client(url: String) -> Result<HttpClient> {
     HttpClientBuilder::default()
+        .request_timeout(std::time::Duration::from_secs(5))
         .build(url)
         .map_err(anyhow::Error::msg)
 }
